@@ -10,7 +10,20 @@ function token() {
   return process.env.WHATSAPP_TOKEN;
 }
 
+// Bug conocido de Meta: para Argentina, el webhook entrega el número del
+// remitente CON un "9" extra después del código de país (ej. 549341...),
+// pero para RESPONDERLE por la API hay que mandarlo SIN ese "9" (54341...).
+// Si no se hace esta conversión, Meta rechaza el envío con "recipient phone
+// number not in allowed list" aunque el número esté verificado.
+// México tiene una particularidad parecida (un "1" de más en vez de "9").
+function formatDestino(numero) {
+  if (/^549\d{10}$/.test(numero)) return '54' + numero.slice(3); // Argentina
+  if (/^521\d{10}$/.test(numero)) return '52' + numero.slice(3); // México
+  return numero;
+}
+
 async function sendMessage(to, text) {
+  const destino = formatDestino(to);
   const url = `https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId()}/messages`;
   const res = await fetch(url, {
     method: 'POST',
@@ -20,7 +33,7 @@ async function sendMessage(to, text) {
     },
     body: JSON.stringify({
       messaging_product: 'whatsapp',
-      to,
+      to: destino,
       type: 'text',
       text: { body: text },
     }),
@@ -48,7 +61,7 @@ async function sendTemplate(to, nombrePlantilla, idioma, parametros = {}) {
   const url = `https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId()}/messages`;
   const body = {
     messaging_product: 'whatsapp',
-    to,
+    to: formatDestino(to),
     type: 'template',
     template: {
       name: nombrePlantilla,
