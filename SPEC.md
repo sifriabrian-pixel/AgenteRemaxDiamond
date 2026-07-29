@@ -173,9 +173,11 @@ Todo esto se copió con placeholders `[PENDIENTE: ...]` en `prompts/diamond.js` 
 | Link a política de privacidad | |
 | Horario real de atención (se asumió lun-vie 08:30-17:30 como Impacta) | |
 | Zona de cobertura exacta (se asumió Manta y cantones cercanos) | |
-| Cuenta de WhatsApp Business Cloud API de Meta para este número | Phone Number ID, token, app secret, verify token |
+| ~~Cuenta de WhatsApp Business Cloud API de Meta (modo prueba)~~ | RESUELTO — app "Agente Remax Diamond" creada, número de prueba configurado, webhook conectado y suscrito (`{WABA_ID}/subscribed_apps`), variables cargadas en Railway. Falta migrar al número real de Diamond (Fase 2/3, pendiente de que alguien registre y verifique el número real). |
 | Revisión y aprobación del FAQ (`src/faq.js`) | Adaptado de Impacta, tiene supuestos sobre horario/comisión |
 | ~~Preguntas del flujo de reclutamiento~~ | RESUELTO — Diamond pasó su formulario de postulación (Google Form), se integró en FLUJO 2 de `prompts/diamond.js` + `data/asesores.json` no aplica acá, ver esquema `asesor` en `src/claude.js`. **Ojo:** las opciones exactas del desplegable "¿Cómo se enteró de nosotros?" no se veían en la captura — se redactó con categorías genéricas (redes sociales / recomendación / anuncio / otro), confirmar si Diamond quiere opciones específicas. |
+| ~~Bug de envío a números de Argentina/México~~ | RESUELTO en código (`src/whatsapp.js` → `formatDestino()`) — no bloquea nada, era solo un efecto secundario de probar con un número de prueba argentino. No afecta a leads reales de Ecuador. |
+| Confirmar respuesta real por WhatsApp con número no-Argentina | El envío de Diamantito nunca se confirmó de punta a punta por una restricción de "lista de destinatarios" de Meta específica del número de prueba argentino (modo desarrollo). Se resuelve solo al conectar el número real de Diamond, o probando con un número de prueba de otro país. |
 
 ---
 
