@@ -479,7 +479,7 @@ function renderPrivacyPage() {
         <p>Última actualización: ${new Date().toLocaleDateString('es-EC')}</p>
 
         <h2>1. Responsable del tratamiento</h2>
-        <p>RE/MAX Diamond, con domicilio en MANICENTRO y Calle 23, 130227 Manta, Ecuador, es responsable del tratamiento de los datos personales que usted nos proporciona a través de nuestro asistente virtual de WhatsApp ("Diamantito") y demás canales de contacto.</p>
+        <p>RE/MAX Diamond, con domicilio en Av. Flavio Reyes entre Av. 24 y Calle 23, CC Manta Shopping Maincentro, Local 26, Manta, Manabí, Ecuador, es responsable del tratamiento de los datos personales que usted nos proporciona a través de nuestro asistente virtual de WhatsApp ("Diamantito") y demás canales de contacto.</p>
 
         <h2>2. Datos que recolectamos</h2>
         <p>Según el motivo de su contacto, podemos solicitar: nombre completo, número de teléfono, ciudad o sector, tipo y características de la propiedad de interés (venta, arriendo, compra o renta), presupuesto, disponibilidad de contacto, fecha de cumpleaños (opcional) y, en caso de postulación como asesor, información sobre su experiencia y situación laboral.</p>
@@ -500,7 +500,7 @@ function renderPrivacyPage() {
         <p>Sus datos son compartidos únicamente con el asesor inmobiliario o responsable de selección correspondiente dentro de RE/MAX Diamond, con el fin de darle seguimiento a su consulta. No vendemos ni cedemos sus datos a terceros ajenos a la operación de la empresa.</p>
 
         <h2>8. Contacto</h2>
-        <p>Para consultas sobre esta política o sobre el tratamiento de sus datos, puede escribirnos a través de nuestros canales oficiales [PENDIENTE: link web].</p>
+        <p>Para consultas sobre esta política o sobre el tratamiento de sus datos, puede escribirnos a través de nuestro sitio web <a href="https://www.remax.com.ec/diamond">remax.com.ec/diamond</a> o al correo <a href="mailto:diamond@remax.com.ec">diamond@remax.com.ec</a>.</p>
       </body>
     </html>
   `;

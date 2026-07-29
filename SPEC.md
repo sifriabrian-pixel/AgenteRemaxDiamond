@@ -161,8 +161,11 @@ Todo esto se copió con placeholders `[PENDIENTE: ...]` en `prompts/diamond.js` 
 | ~~Sistema de derivación (comprador/arrendatario)~~ | RESUELTO — exclusividad por propiedad, ver sección 3.4 |
 | ~~Sistema de derivación (propietario/general)~~ | RESUELTO — oficina de Grace (`WHATSAPP_BACKUP`), ver sección 5. Falta el número real. |
 | ~~3 agentes del MLS sin match~~ | RESUELTO — Brian confirmó que son la misma persona; se agregaron como `alias` en `data/asesores.json`. 832/832 propiedades activas con asesor asignado. |
-| ~~Dirección física de la oficina~~ | RESUELTO — MANICENTRO y Calle 23, 130227 Manta, Ecuador |
-| Sitio web de RE/MAX Diamond | Para mensajes de cierre y política de privacidad |
+| ~~Dirección física de la oficina~~ | RESUELTO — Av. Flavio Reyes entre Av. 24 y Calle 23, CC Manta Shopping Maincentro, Local 26, Manta, Manabí |
+| ~~Sitio web de RE/MAX Diamond~~ | RESUELTO — https://www.remax.com.ec/diamond |
+| ~~Correo de contacto~~ | RESUELTO — diamond@remax.com.ec (agregado a la política de privacidad) |
+| ~~Zona de cobertura exacta~~ | RESUELTO — Manta, Ecuador (se sacaron los cantones que habíamos supuesto — Montecristi, Jaramijó, etc. — ya no aplican) |
+| **Número real de WhatsApp de Diamond** | **+593 98 543 7529** — es el número que hay que registrar y verificar en Meta (Fase 2/3 de la guía), reemplazando al número de prueba actual |
 | Nombre de la persona responsable de selección/reclutamiento | Equivalente a "Nicole" en Impacta |
 | Número de WhatsApp de esa persona (`WHATSAPP_RECLUTAMIENTO`) | |
 | Grupo de WhatsApp de reclutamiento (`WHATSAPP_GRUPO_RECLUTAMIENTO`) | |
@@ -170,9 +173,8 @@ Todo esto se copió con placeholders `[PENDIENTE: ...]` en `prompts/diamond.js` 
 | Números autorizados para `!guardia` (`NUMEROS_AUTORIZADOS`) | |
 | Video institucional para el flujo de reclutamiento | |
 | Link a página de carrera inmobiliaria | |
-| Link a política de privacidad | |
+| Link a política de privacidad | Mientras tanto usamos la que sirve el propio agente en `/privacidad` |
 | Horario real de atención (se asumió lun-vie 08:30-17:30 como Impacta) | |
-| Zona de cobertura exacta (se asumió Manta y cantones cercanos) | |
 | ~~Cuenta de WhatsApp Business Cloud API de Meta (modo prueba)~~ | RESUELTO — app "Agente Remax Diamond" creada, número de prueba configurado, webhook conectado y suscrito (`{WABA_ID}/subscribed_apps`), variables cargadas en Railway. Falta migrar al número real de Diamond (Fase 2/3, pendiente de que alguien registre y verifique el número real). |
 | Revisión y aprobación del FAQ (`src/faq.js`) | Adaptado de Impacta, tiene supuestos sobre horario/comisión |
 | ~~Preguntas del flujo de reclutamiento~~ | RESUELTO — Diamond pasó su formulario de postulación (Google Form), se integró en FLUJO 2 de `prompts/diamond.js` + `data/asesores.json` no aplica acá, ver esquema `asesor` en `src/claude.js`. **Ojo:** las opciones exactas del desplegable "¿Cómo se enteró de nosotros?" no se veían en la captura — se redactó con categorías genéricas (redes sociales / recomendación / anuncio / otro), confirmar si Diamond quiere opciones específicas. |
