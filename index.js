@@ -488,7 +488,7 @@ function renderPrivacyPage() {
         <p>Utilizamos estos datos exclusivamente para: contactarlo con un asesor inmobiliario, dar seguimiento a su consulta, evaluar postulaciones para unirse a nuestro equipo de asesores, y mejorar nuestro servicio de atención.</p>
 
         <h2>4. Base legal</h2>
-        <p>El tratamiento de sus datos se realiza conforme a la Ley Orgánica de Protección de Datos Personales del Ecuador, en particular en virtud del Art. 7 numeral 5 (ejecución de medidas precontractuales a petición del titular). El aviso correspondiente se le presenta antes de solicitar cualquier dato personal, y el hecho de continuar la conversación constituye su consentimiento implícito.</p>
+        <p>El tratamiento de sus datos se realiza conforme a la <a href="https://www.telecomunicaciones.gob.ec/ley-y-reglamento-de-la-ley-de-proteccion-de-datos-personales/">Ley Orgánica de Protección de Datos Personales del Ecuador</a>, en particular en virtud del Art. 7 numeral 5 (ejecución de medidas precontractuales a petición del titular). El aviso correspondiente se le presenta antes de solicitar cualquier dato personal, y el hecho de continuar la conversación constituye su consentimiento implícito.</p>
 
         <h2>5. Conservación de datos</h2>
         <p>Conservamos sus datos durante el tiempo necesario para gestionar su consulta y dar cumplimiento a obligaciones legales o contractuales aplicables.</p>
