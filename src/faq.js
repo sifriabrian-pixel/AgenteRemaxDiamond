@@ -46,7 +46,7 @@ const FAQ = [
   {
     pregunta: '¿A qué hora atienden?',
     sinonimos: ['horario', 'hora de atención', 'cuándo atienden', 'están disponibles', 'horario de oficina'],
-    // PENDIENTE: confirmar horario real de RE/MAX Diamond (se asume el mismo que Impacta: lun-vie 08:30-17:30)
+    // Horario confirmado por Diamond (2026): lun-vie 08:30-17:30
     respuesta: `Nuestro horario es de lunes a viernes, de 8:30 a.m. a 5:30 p.m. Si me escribe fuera de ese horario, tomo sus datos sin problema y un asesor lo contacta apenas sea posible. No pierde su consulta — solo arreglamos para atenderlo en el horario que corresponda. ¿Hay algo específico en lo que pueda ayudarle ahora?`,
   },
 
@@ -54,8 +54,8 @@ const FAQ = [
   {
     pregunta: '¿En qué zonas atienden?',
     sinonimos: ['zonas', 'sectores', 'cobertura', 'dónde trabajan', 'en qué lugares'],
-    // PENDIENTE: confirmar zona de cobertura exacta con el cliente
-    respuesta: `Nuestro equipo atiende Manta y sus principales zonas cercanas. Donde sea que esté su propiedad en Manta, tenemos asesores para atenderlo. Si en algún caso la propiedad está fuera de nuestras zonas de cobertura, se lo comentamos con claridad. ¿Hay algo específico en lo que pueda ayudarle ahora?`,
+    // Cobertura confirmada por Diamond (2026): Manta y Portoviejo, Ecuador
+    respuesta: `Nuestro equipo atiende Manta y Portoviejo, con oficina en cada ciudad. Donde sea que esté su propiedad, tenemos asesores para atenderlo. Si en algún caso la propiedad está fuera de nuestra zona de cobertura, se lo comentamos con claridad. ¿Hay algo específico en lo que pueda ayudarle ahora?`,
   },
 
   // HERRAMIENTAS PARA ASESORES

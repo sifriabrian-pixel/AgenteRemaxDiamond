@@ -2,7 +2,7 @@
 
 ## 1. DESCRIPCIÓN DEL PROYECTO
 
-Agente de WhatsApp para RE/MAX Diamond (Manta, Ecuador). Vive en el número principal de la oficina y funciona como primer punto de contacto para cualquier persona que escriba.
+Agente de WhatsApp para RE/MAX Diamond — oficinas en Manta y Portoviejo, Ecuador. Vive en el número principal de la oficina y funciona como primer punto de contacto para cualquier persona que escriba.
 
 El agente clasifica al contacto según su necesidad, responde consultas sobre propiedades puntuales del catálogo, ejecuta el flujo correspondiente y deriva al humano correcto con un resumen estructurado.
 
@@ -164,7 +164,7 @@ Todo esto se copió con placeholders `[PENDIENTE: ...]` en `prompts/diamond.js` 
 | ~~Dirección física de la oficina~~ | RESUELTO — Av. Flavio Reyes entre Av. 24 y Calle 23, CC Manta Shopping Maincentro, Local 26, Manta, Manabí |
 | ~~Sitio web de RE/MAX Diamond~~ | RESUELTO — https://www.remax.com.ec/diamond |
 | ~~Correo de contacto~~ | RESUELTO — diamond@remax.com.ec (agregado a la política de privacidad) |
-| ~~Zona de cobertura exacta~~ | RESUELTO — Manta, Ecuador (se sacaron los cantones que habíamos supuesto — Montecristi, Jaramijó, etc. — ya no aplican) |
+| ~~Zona de cobertura exacta~~ | RESUELTO (actualizado) — Diamond tiene oficina en **Manta y Portoviejo**. Dirección de Portoviejo: Av. Reales Tamarindos, al lado del Banco del Pacífico, planta baja de Plaza Prestige. `prompts/diamond.js` ahora elige la dirección de cierre según la ciudad de la propiedad/candidato (sección "OFICINAS" del prompt). |
 | **Número real de WhatsApp de Diamond** | **+593 98 543 7529** — es el número que hay que registrar y verificar en Meta (Fase 2/3 de la guía), reemplazando al número de prueba actual |
 | Nombre de la persona responsable de selección/reclutamiento | Equivalente a "Nicole" en Impacta |
 | Número de WhatsApp de esa persona (`WHATSAPP_RECLUTAMIENTO`) | |
