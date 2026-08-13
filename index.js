@@ -68,7 +68,7 @@ Fondo inicial: ${datos.fondoInicial || '-'}
 Modelo comisión: ${datos.modeloComision || '-'}
 Hoja de vida: ${datos.cvDisponible || '-'}
 
-[Le compartí el test DISC. Queda a la espera de tu contacto.]`;
+[Queda a la espera de tu contacto.]`;
 }
 
 function formatResumenComprador(telefono, datos) {
@@ -86,9 +86,11 @@ function formatResumenArrendatario(telefono, datos) {
   return `🔔 Nuevo lead arrendatario
 
 Contacto: ${datos.nombre || '-'} · ${telefono}
+Tiempo de alquiler deseado: ${datos.tiempoAlquiler || '-'}
 Tipo: ${datos.tipo || '-'}
 Sector: ${datos.sector || '-'}
 Dormitorios: ${datos.dormitorios || '-'}
+Mascotas: ${datos.mascotas || '-'} · Estacionamiento: ${datos.estacionamiento || '-'} · Ascensor: ${datos.ascensor || '-'}
 Presupuesto mensual: ${datos.presupuesto || '-'}
 Propiedad consultada: ${datos.codigoPropiedad || '-'}`;
 }

@@ -126,12 +126,10 @@ Relación: ${datos.relacion || '-'}
 
 Propiedad: ${datos.tipo || '-'} ${datos.dormitorios || ''} · ${datos.sector || '-'} · ${datos.superficie || '-'}
 Operación: ${datos.operacion || '-'}
-Motivo: ${datos.motivo || '-'}
 Ocupación: ${datos.ocupacion || '-'}
 Precio estimado: ${datos.precio || 'necesita tasación'}
-Urgencia: ${datos.urgencia || '-'} · trabaja con otra inmobiliaria: ${datos.otraInmobiliaria || '-'}
+Trabaja con otra inmobiliaria: ${datos.otraInmobiliaria || '-'}
 Disponibilidad: ${datos.disponibilidad || '-'}
-Cumpleaños: ${datos.cumpleanos || 'no proporcionó'}
 
 Zona: ${datos.zona || '-'}
 Antigüedad: ${datos.antiguedad || 'no informada'}

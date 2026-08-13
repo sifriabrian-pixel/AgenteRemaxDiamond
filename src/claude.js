@@ -97,15 +97,12 @@ const SCHEMAS = {
   "superficie": "superficie aproximada",
   "ocupacion": "ocupada o desocupada",
   "operacion": "venta o arriendo",
-  "motivo": "motivo de venta o arriendo",
   "precio": "precio estimado o null si necesita tasación",
-  "urgencia": "plazo o urgencia",
   "otraInmobiliaria": "sí o no",
-  "disponibilidad": "día y preferencia horaria (mañana/tarde) para ser contactado",
-  "cumpleanos": "fecha de cumpleaños o null si no proporcionó",
-  "zona": "Manta / alrededores / fuera de cobertura",
+  "disponibilidad": "preferencia horaria (mañana/tarde) para ser contactado",
+  "zona": "Manta / Portoviejo / fuera de cobertura",
   "antiguedad": "nueva / 1-5 años / 6-10 años / +10 años / no sabe",
-  "prioridad": "Alta / Media / Baja según urgencia y disposición",
+  "prioridad": "Alta / Media / Baja según disposición",
   "observacion": "contexto relevante para el asesor, máximo 1 oración"
 }`,
   asesor: `{
@@ -127,7 +124,7 @@ const SCHEMAS = {
   comprador: `{
   "nombre": "nombre completo si fue mencionado",
   "tipo": "tipo de propiedad",
-  "sector": "sector o barrio en Manta",
+  "sector": "sector o barrio en Manta o Portoviejo",
   "dormitorios": "número de dormitorios",
   "presupuesto": "presupuesto estimado",
   "codigoPropiedad": "código de la propiedad del catálogo si el lead consultó por una puntual, o null",
@@ -135,9 +132,13 @@ const SCHEMAS = {
 }`,
   arrendatario: `{
   "nombre": "nombre completo si fue mencionado",
+  "tiempoAlquiler": "por cuánto tiempo desea alquilar",
   "tipo": "tipo de propiedad",
-  "sector": "sector o barrio en Manta",
+  "sector": "sector o barrio en Manta o Portoviejo",
   "dormitorios": "número de dormitorios",
+  "mascotas": "sí o no",
+  "estacionamiento": "sí o no",
+  "ascensor": "sí, no, o null si no aplica/no se preguntó",
   "presupuesto": "presupuesto mensual",
   "codigoPropiedad": "código de la propiedad del catálogo si el lead consultó por una puntual, o null",
   "cumpleanos": "fecha de cumpleaños o null si no proporcionó"
