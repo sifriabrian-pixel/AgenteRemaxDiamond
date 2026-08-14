@@ -122,14 +122,24 @@ function main() {
   const lineas = leerCsv(rutaCsv).filter((l) => l.trim() !== 'sep=,');
   const encabezados = parsearLinea(lineas[0]);
 
-  // OJO: este export trae "Tipo de moneda" duplicado en el encabezado, y además
-  // el par "Precio" / "Tipo de moneda" viene con los VALORES en orden inverso al
-  // que dicen los nombres de columna (la celda bajo "Precio" trae la moneda, ej.
-  // "USD", y la celda bajo "Tipo de moneda" trae el monto numérico, ej. "80000").
-  // Verificado a mano contra 20 filas reales del export del 2026-07-13 — si un
-  // futuro export de RE/MAX viene con las columnas corregidas, hay que sacar
-  // este ajuste y volver a usar indiceDe('Precio') directo.
+  // OJO: el export de RE/MAX tiene un historial de bug con el par "Precio" /
+  // "Tipo de moneda" (encabezado duplicado): en el export del 2026-07-13 los
+  // VALORES venían en orden inverso a los nombres de columna (bajo "Precio"
+  // venía la moneda "USD", y el monto numérico estaba en la celda siguiente).
+  // En el export del 2026-08-14 ya vino corregido (Precio = monto numérico
+  // directo). Para no depender de cuál versión manda RE/MAX cada vez, se
+  // detecta solo: se usa la celda de "Precio" si es numérica: si no lo es,
+  // se prueba con la celda siguiente (que en el bug viejo tenía el monto).
   const indicePrecioHeader = encabezados.indexOf('Precio');
+
+  function extraerPrecio(fila) {
+    const limpiar = (v) => (v || '').replace(/^=/, '').trim();
+    const candidato1 = limpiar(fila[indicePrecioHeader]);
+    if (candidato1 && !isNaN(Number(candidato1))) return candidato1;
+    const candidato2 = limpiar(fila[indicePrecioHeader + 1]);
+    if (candidato2 && !isNaN(Number(candidato2))) return candidato2;
+    return candidato1; // ninguno es numérico — devolver tal cual para no ocultar el problema
+  }
 
   const filas = lineas.slice(1).map((linea) => parsearLinea(linea));
 
@@ -156,8 +166,7 @@ function main() {
         dormitorios: v('Dormitorios') || '',
         banos: '', // no viene en este export
         superficie: elegirSuperficie(v),
-        // Excel a veces deja un "=" suelto delante de precios con decimales (sin comillas)
-        precio: (fila[indicePrecioHeader + 1] || '').replace(/^=/, ''),
+        precio: extraerPrecio(fila),
         descripcion: construirDescripcion(v),
         estado: 'activa',
         asesorNombre: asesor ? asesor.nombre : (nombreAgente || null),
