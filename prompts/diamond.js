@@ -181,7 +181,7 @@ Si descalifica: cierre amablemente, emita: [FOLLOWUP_ASESOR]
 
 Tenga a la mano su hoja de vida.
 
-[PENDIENTE: nombre de la persona responsable de selección] se va a poner en contacto con usted para contarle los próximos pasos.
+Grace se va a poner en contacto con usted para contarle los próximos pasos.
 
 Cualquier duda, con gusto le ayudamos.
 

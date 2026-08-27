@@ -166,7 +166,7 @@ Todo esto se copió con placeholders `[PENDIENTE: ...]` en `prompts/diamond.js` 
 | ~~Correo de contacto~~ | RESUELTO — diamond@remax.com.ec (agregado a la política de privacidad) |
 | ~~Zona de cobertura exacta~~ | RESUELTO (actualizado) — Diamond tiene oficina en **Manta y Portoviejo**. Dirección de Portoviejo: Av. Reales Tamarindos, al lado del Banco del Pacífico, planta baja de Plaza Prestige. `prompts/diamond.js` ahora elige la dirección de cierre según la ciudad de la propiedad/candidato (sección "OFICINAS" del prompt). |
 | **Número real de WhatsApp de Diamond** | **+593 98 543 7529** — es el número que hay que registrar y verificar en Meta (Fase 2/3 de la guía), reemplazando al número de prueba actual |
-| Nombre de la persona responsable de selección/reclutamiento | Equivalente a "Nicole" en Impacta |
+| ~~Nombre de la persona responsable de selección/reclutamiento~~ | RESUELTO — Grace (mismo número que `WHATSAPP_BACKUP`, ver sección 5) |
 | Número de WhatsApp de esa persona (`WHATSAPP_RECLUTAMIENTO`) | |
 | Grupo de WhatsApp de reclutamiento (`WHATSAPP_GRUPO_RECLUTAMIENTO`) | |
 | Número de backup para consultas generales (`WHATSAPP_BACKUP`) | |
