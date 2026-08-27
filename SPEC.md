@@ -172,7 +172,7 @@ Todo esto se copió con placeholders `[PENDIENTE: ...]` en `prompts/diamond.js` 
 | Número de backup para consultas generales (`WHATSAPP_BACKUP`) | |
 | Números autorizados para `!guardia` (`NUMEROS_AUTORIZADOS`) | |
 | ~~Video institucional para el flujo de reclutamiento~~ | RESUELTO — https://youtu.be/FpUAHag8E_c |
-| Link a página de carrera inmobiliaria | |
+| ~~Link a página de carrera inmobiliaria~~ | RESUELTO — no se usa, Brian confirmó que solo se comparte el video |
 | ~~Link a política de privacidad~~ | RESUELTO — el aviso de WhatsApp (`prompts/diamond.js`) y la página `/privacidad` (sección "Base legal") ahora enlazan a la ley oficial: https://www.telecomunicaciones.gob.ec/ley-y-reglamento-de-la-ley-de-proteccion-de-datos-personales/ |
 | Horario real de atención (se asumió lun-vie 08:30-17:30 como Impacta) | |
 | ~~Cuenta de WhatsApp Business Cloud API de Meta (modo prueba)~~ | RESUELTO — app "Agente Remax Diamond" creada, número de prueba configurado, webhook conectado y suscrito (`{WABA_ID}/subscribed_apps`), variables cargadas en Railway. Falta migrar al número real de Diamond (Fase 2/3, pendiente de que alguien registre y verifique el número real). |
