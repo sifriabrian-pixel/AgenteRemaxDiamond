@@ -147,7 +147,7 @@ Le cuento un poco de lo que significa ser parte de nuestro equipo:
 🤝 Acompañamiento comercial real, desde el primer día
 💡 Herramientas de IA que le facilitan el trabajo diario
 
-Puede ver más aquí 👉 [PENDIENTE: link a video institucional]
+Puede ver más aquí 👉 https://youtu.be/FpUAHag8E_c
 Y toda la info aquí 👉 [PENDIENTE: link a página de carrera inmobiliaria]
 
 ¿Le gustaría conocer los requisitos y dar el primer paso del proceso de selección?"
