@@ -49,6 +49,12 @@ function reclutamientoParam(texto) {
   return texto.replace(/\n+/g, ' | ').replace(/\s{5,}/g, '    ');
 }
 
+// Notifica al asesor con exclusividad sobre la propiedad (plantilla aprobada —
+// no se puede mandar texto libre porque el asesor no le escribió antes al bot).
+async function notificarAsesor(numero, resumen) {
+  await whatsapp.sendTemplate(numero, 'notificacion_derivacion_asesorv2', 'es_EC', { '1': reclutamientoParam(resumen) });
+}
+
 function formatResumenAsesor(telefono, datos) {
   return `🔔 RECLUTAMIENTO — Nuevo prospecto asesor calificado
 
@@ -117,18 +123,12 @@ async function handleTrigger(trigger, numeroLimpio, datos) {
         const asesor = asesorBackup();
         if (asesor) {
           const resumen = scheduler.formatResumenPropietario(numeroLimpio, datos);
-          await whatsapp.sendMessage(asesor.whatsapp, resumen);
-          memory.set(asesor.whatsapp, { esGuardia: true, nombreGuardia: asesor.nombre });
-          memory.addMessage(asesor.whatsapp, 'assistant', resumen);
-          // Notificar al equipo de reclutamiento/coordinación con el asesor asignado
-          if (process.env.WHATSAPP_RECLUTAMIENTO) {
-            try {
-              const resumenReclutamiento = `📋 CAPTACIÓN — Lead derivado a ${asesor.nombre}\n\n` + resumen;
-              await whatsapp.sendTemplate(process.env.WHATSAPP_RECLUTAMIENTO, 'notificacion_lead_reclutamiento', 'es_EC', { '1': reclutamientoParam(resumenReclutamiento) });
-              memory.addMessage(process.env.WHATSAPP_RECLUTAMIENTO, 'assistant', resumenReclutamiento);
-            } catch (e) {
-              console.error(`[handoff] FALLO notificación (propietario):`, e.message);
-            }
+          try {
+            await whatsapp.sendTemplate(asesor.whatsapp, 'notificacion_lead_reclutamiento', 'es_EC', { '1': reclutamientoParam(resumen) });
+            memory.set(asesor.whatsapp, { esGuardia: true, nombreGuardia: asesor.nombre });
+            memory.addMessage(asesor.whatsapp, 'assistant', resumen);
+          } catch (e) {
+            console.error(`[handoff] FALLO notificación (propietario):`, e.message);
           }
           memory.set(numeroLimpio, { datos: { ...datos, handoffListo: true } });
           stats.logEvent('handoff_propietario', numeroLimpio);
@@ -201,11 +201,17 @@ async function handleTrigger(trigger, numeroLimpio, datos) {
         const asesorC = await resolverAsesor(datos);
         const resumenC = formatResumenComprador(numeroLimpio, datos);
         if (asesorC) {
-          await whatsapp.sendMessage(asesorC.whatsapp, resumenC);
-          memory.set(asesorC.whatsapp, { esGuardia: true, nombreGuardia: asesorC.nombre });
-          memory.addMessage(asesorC.whatsapp, 'assistant', resumenC);
-          console.log(`[handoff] Comprador derivado a ${asesorC.nombre}`);
-          if (process.env.WHATSAPP_RECLUTAMIENTO) {
+          try {
+            await notificarAsesor(asesorC.whatsapp, resumenC);
+            memory.set(asesorC.whatsapp, { esGuardia: true, nombreGuardia: asesorC.nombre });
+            memory.addMessage(asesorC.whatsapp, 'assistant', resumenC);
+            console.log(`[handoff] Comprador derivado a ${asesorC.nombre}`);
+          } catch (e) {
+            console.error(`[handoff] FALLO notificación (comprador):`, e.message);
+          }
+          // CC a reclutamiento solo si el asesor asignado es una persona distinta
+          // (si no hay asesor exclusivo, ya cae en el mismo número y sería duplicado)
+          if (process.env.WHATSAPP_RECLUTAMIENTO && asesorC.whatsapp !== process.env.WHATSAPP_RECLUTAMIENTO) {
             try {
               const resumenReclutamiento = `🔔 COMPRADOR — Lead derivado a ${asesorC.nombre}\n\n` + resumenC;
               await whatsapp.sendTemplate(process.env.WHATSAPP_RECLUTAMIENTO, 'notificacion_lead_reclutamiento', 'es_EC', { '1': reclutamientoParam(resumenReclutamiento) });
@@ -236,11 +242,15 @@ async function handleTrigger(trigger, numeroLimpio, datos) {
         const asesorA = await resolverAsesor(datos);
         const resumenA = formatResumenArrendatario(numeroLimpio, datos);
         if (asesorA) {
-          await whatsapp.sendMessage(asesorA.whatsapp, resumenA);
-          memory.set(asesorA.whatsapp, { esGuardia: true, nombreGuardia: asesorA.nombre });
-          memory.addMessage(asesorA.whatsapp, 'assistant', resumenA);
-          console.log(`[handoff] Arrendatario derivado a ${asesorA.nombre}`);
-          if (process.env.WHATSAPP_RECLUTAMIENTO) {
+          try {
+            await notificarAsesor(asesorA.whatsapp, resumenA);
+            memory.set(asesorA.whatsapp, { esGuardia: true, nombreGuardia: asesorA.nombre });
+            memory.addMessage(asesorA.whatsapp, 'assistant', resumenA);
+            console.log(`[handoff] Arrendatario derivado a ${asesorA.nombre}`);
+          } catch (e) {
+            console.error(`[handoff] FALLO notificación (arrendatario):`, e.message);
+          }
+          if (process.env.WHATSAPP_RECLUTAMIENTO && asesorA.whatsapp !== process.env.WHATSAPP_RECLUTAMIENTO) {
             try {
               const resumenReclutamiento = `🔔 ARRENDATARIO — Lead derivado a ${asesorA.nombre}\n\n` + resumenA;
               await whatsapp.sendTemplate(process.env.WHATSAPP_RECLUTAMIENTO, 'notificacion_lead_reclutamiento', 'es_EC', { '1': reclutamientoParam(resumenReclutamiento) });
@@ -271,10 +281,14 @@ async function handleTrigger(trigger, numeroLimpio, datos) {
         const asesorG = asesorBackup();
         if (asesorG) {
           const texto = `🔔 Consulta general\n\nContacto: ${numeroLimpio}\nMensaje sin flujo definido. Requiere atención manual.`;
-          await whatsapp.sendMessage(asesorG.whatsapp, texto);
-          memory.set(asesorG.whatsapp, { esGuardia: true, nombreGuardia: asesorG.nombre });
-          memory.addMessage(asesorG.whatsapp, 'assistant', texto);
-          console.log(`[handoff] General derivado a ${asesorG.nombre}`);
+          try {
+            await whatsapp.sendTemplate(asesorG.whatsapp, 'notificacion_lead_reclutamiento', 'es_EC', { '1': reclutamientoParam(texto) });
+            memory.set(asesorG.whatsapp, { esGuardia: true, nombreGuardia: asesorG.nombre });
+            memory.addMessage(asesorG.whatsapp, 'assistant', texto);
+            console.log(`[handoff] General derivado a ${asesorG.nombre}`);
+          } catch (e) {
+            console.error(`[handoff] FALLO notificación (general):`, e.message);
+          }
         }
         stats.logEvent('handoff_general', numeroLimpio);
         break;
