@@ -71,18 +71,15 @@ function init() {
 
 async function enviarFollowup(numero, estado, tipo) {
   const nombre = estado.datos?.nombre || '';
-  const sector = estado.datos?.sector || '';
   let texto = '';
 
   // Todos los follow-ups usan plantillas aprobadas (obligatorio fuera de la ventana de 24hs)
+  // 24h_propietario y 24h_asesor comparten la misma plantilla genérica (recordatorio_24h)
   const plantillas = {
-    '24h_propietario': () => whatsapp.sendTemplate(numero, 'recordatorio_propietario_24h', 'es_EC', {
-      nombre: nombre || 'cliente',
-      sector: sector || 'su zona',
-    }),
-    '24h_asesor':  () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_24h',  'es_EC', { nombre: nombre || 'cliente' }),
-    '72h_asesor':  () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_72h',  'es_EC', { nombre: nombre || 'cliente' }),
-    '7d_asesor':   () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_7d',   'es_EC', { nombre: nombre || 'cliente' }),
+    '24h_propietario': () => whatsapp.sendTemplate(numero, 'recordatorio_24h', 'es_EC', { nombre: nombre || 'cliente' }),
+    '24h_asesor':  () => whatsapp.sendTemplate(numero, 'recordatorio_24h',      'es_EC', { nombre: nombre || 'cliente' }),
+    '72h_asesor':  () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_72h', 'es_EC', { nombre: nombre || 'cliente' }),
+    '7d_asesor':   () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_7d',  'es_EC', { nombre: nombre || 'cliente' }),
     '30d_asesor':  () => whatsapp.sendTemplate(numero, 'reactivacion_asesor_30d', 'es_EC', { nombre: nombre || 'cliente' }),
   };
 
