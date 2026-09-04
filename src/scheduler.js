@@ -80,7 +80,7 @@ async function enviarFollowup(numero, estado, tipo) {
       nombre: nombre || 'cliente',
       sector: sector || 'su zona',
     }),
-    '24h_asesor':  () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_24h',  'es_EC', { customer_name: nombre || 'cliente' }),
+    '24h_asesor':  () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_24h',  'es_EC', { nombre: nombre || 'cliente' }),
     '72h_asesor':  () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_72h',  'es_EC', { nombre: nombre || 'cliente' }),
     '7d_asesor':   () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_7d',   'es_EC', { nombre: nombre || 'cliente' }),
     '30d_asesor':  () => whatsapp.sendTemplate(numero, 'reactivacion_asesor_30d', 'es_EC', { nombre: nombre || 'cliente' }),
