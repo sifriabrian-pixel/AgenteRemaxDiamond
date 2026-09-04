@@ -345,8 +345,9 @@ async function procesarMensaje(numeroLimpio, texto) {
   const consentEnEstaRespuesta = respuesta.includes('[CONSENT_GRANTED]');
   const textoLimpio = cleanResponse(respuesta);
 
-  // Guardar respuesta en historial
-  memory.addMessage(numeroLimpio, 'assistant', respuesta);
+  // Guardar en el historial la versión limpia (sin triggers) — es lo que
+  // realmente recibió el lead, y es lo que debe verse en el dashboard.
+  memory.addMessage(numeroLimpio, 'assistant', textoLimpio);
 
   // Marcar consentimiento si aplica
   if (consentEnEstaRespuesta) {
