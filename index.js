@@ -662,18 +662,35 @@ function renderConversacionesPage(numeroSeleccionado) {
 
   const internasHtml = internas.map(([numero, estado]) => {
     const nombre = numero === reclutamientoNumero
-      ? '📋 Reclutamiento / oficina (derivaciones)'
+      ? '📋 Reclutamiento / oficina'
       : `🔔 Asesor — ${estado.nombreGuardia || numero}`;
     const fecha = tiempoRelativo(estado.ultimoMensaje);
-    const activo = numero === numeroSeleccionado ? 'background:#e8f0ec;' : '';
+    const activo = numero === numeroSeleccionado;
     return `
-      <a href="/conversaciones?numero=${encodeURIComponent(numero)}" style="text-decoration:none;color:inherit;display:block;">
-        <div style="padding:10px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;${activo}">
-          <span style="font-size:13px;font-weight:600;">${nombre}</span>
-          <span style="font-size:11px;color:#999;">${fecha}</span>
+      <a href="/conversaciones?numero=${encodeURIComponent(numero)}"
+         class="tarjeta-lead"
+         data-nombre="${nombre.toLowerCase()}"
+         data-numero="${numero}"
+         style="text-decoration:none;color:inherit;display:block;margin-bottom:8px;">
+        <div style="background:white;border:1px solid ${activo ? '#0b3d2e' : '#e5e7eb'};${activo ? 'box-shadow:0 0 0 2px #0b3d2e33;' : ''}border-radius:10px;padding:10px 12px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+            <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nombre}</div>
+            <div style="font-size:11px;color:#999;flex-shrink:0;">${fecha}</div>
+          </div>
         </div>
       </a>`;
   }).join('');
+
+  const columnaInternasHtml = `
+    <div class="columna-kanban" style="min-width:260px;flex:1;display:flex;flex-direction:column;background:#f8f9fa;border-radius:12px;overflow:hidden;">
+      <div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:700;color:#666;">Derivaciones</span>
+        <span style="background:#e5e7eb;color:#666;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${internas.length}</span>
+      </div>
+      <div style="padding:10px;overflow-y:auto;max-height:65vh;">
+        ${internasHtml || '<p style="color:#999;font-size:12px;padding:8px;">Sin derivaciones todavía.</p>'}
+      </div>
+    </div>`;
 
   let panelChat = '';
   if (numeroSeleccionado && todas[numeroSeleccionado]) {
@@ -729,16 +746,10 @@ function renderConversacionesPage(numeroSeleccionado) {
             <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;">
               ${columnaTodosHtml}
               ${columnasHtml}
+              ${columnaInternasHtml}
             </div>
 
             ${panelChat}
-
-            <div style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;">
-              <h4 style="margin:0 0 8px;color:#666;font-size:13px;text-transform:uppercase;letter-spacing:0.03em;">Derivaciones internas (asesores y oficina)</h4>
-              <div style="border:1px solid #eee;border-radius:10px;overflow:hidden;">
-                ${internasHtml || '<p style="padding:12px;color:#999;font-size:13px;">Todavía no hay derivaciones.</p>'}
-              </div>
-            </div>
           </div>
         </div>
 
