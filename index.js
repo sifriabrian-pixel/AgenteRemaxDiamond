@@ -130,7 +130,7 @@ async function handleTrigger(trigger, numeroLimpio, datos) {
           } catch (e) {
             console.error(`[handoff] FALLO notificación (propietario):`, e.message);
           }
-          memory.set(numeroLimpio, { datos: { ...datos, handoffListo: true } });
+          memory.set(numeroLimpio, { datos: { ...datos, handoffListo: true, asesorAsignado: asesor } });
           stats.logEvent('handoff_propietario', numeroLimpio);
           console.log(`[handoff] Propietario derivado a ${asesor.nombre}`);
         } else {
@@ -233,7 +233,7 @@ async function handleTrigger(trigger, numeroLimpio, datos) {
             }
           }
         }
-        memory.set(numeroLimpio, { datos: { ...datos, handoffListo: true } });
+        memory.set(numeroLimpio, { datos: { ...datos, handoffListo: true, asesorAsignado: asesorC } });
         stats.logEvent('handoff_comprador', numeroLimpio);
         break;
       }
@@ -272,7 +272,7 @@ async function handleTrigger(trigger, numeroLimpio, datos) {
             }
           }
         }
-        memory.set(numeroLimpio, { datos: { ...datos, handoffListo: true } });
+        memory.set(numeroLimpio, { datos: { ...datos, handoffListo: true, asesorAsignado: asesorA } });
         stats.logEvent('handoff_arrendatario', numeroLimpio);
         break;
       }
@@ -290,6 +290,7 @@ async function handleTrigger(trigger, numeroLimpio, datos) {
             console.error(`[handoff] FALLO notificación (general):`, e.message);
           }
         }
+        memory.set(numeroLimpio, { datos: { ...datos, handoffListo: true, asesorAsignado: asesorG || null } });
         stats.logEvent('handoff_general', numeroLimpio);
         break;
       }
@@ -570,61 +571,111 @@ function motivoConsulta(estado) {
   }
 }
 
-function estadoLead(estado) {
-  const horasInactivo = estado.ultimoMensaje
-    ? (Date.now() - new Date(estado.ultimoMensaje).getTime()) / 1000 / 60 / 60
-    : 0;
+// Columna del Kanban: nuevos (todavía conversando) → calificados (terminó el
+// flujo, sin asesor puntual confirmado) → asignados (ya tiene asesor confirmado,
+// distinto del "Backup oficina" genérico).
+function columnaLead(estado) {
+  if (!estado.datos?.handoffListo) return 'nuevos';
+  const asignado = estado.datos?.asesorAsignado;
+  if (asignado && asignado.nombre && asignado.nombre !== 'Backup oficina') return 'asignados';
+  return 'calificados';
+}
 
-  if (estado.datos?.handoffListo) {
-    return { label: 'Calificado', bg: '#dcfce7', color: '#15803d' };
-  }
-  if (horasInactivo > 24) {
-    return { label: 'Sin respuesta', bg: '#f1f1f1', color: '#666' };
-  }
-  if (!estado.flujo || (estado.historial || []).length <= 2) {
-    return { label: 'Nuevo', bg: '#dbeafe', color: '#1d4ed8' };
-  }
-  return { label: 'Pendiente', bg: '#fef3c7', color: '#b45309' };
+function sinRespuesta(estado) {
+  if (!estado.ultimoMensaje) return false;
+  const horas = (Date.now() - new Date(estado.ultimoMensaje).getTime()) / 1000 / 60 / 60;
+  return horas > 24 && !estado.datos?.handoffListo;
+}
+
+const COLUMNAS = [
+  { key: 'nuevos', label: 'Nuevos', color: '#1d4ed8', bg: '#dbeafe' },
+  { key: 'calificados', label: 'Calificados', color: '#b45309', bg: '#fef3c7' },
+  { key: 'asignados', label: 'Asignados', color: '#15803d', bg: '#dcfce7' },
+];
+
+function renderTarjeta(numero, estado, numeroSeleccionado) {
+  const nombre = estado.datos?.nombre || numero;
+  const motivo = motivoConsulta(estado);
+  const fecha = tiempoRelativo(estado.ultimoMensaje);
+  const activo = numero === numeroSeleccionado;
+  const asignado = estado.datos?.asesorAsignado;
+  const sinResp = sinRespuesta(estado);
+  return `
+    <a href="/conversaciones?numero=${encodeURIComponent(numero)}"
+       class="tarjeta-lead"
+       data-nombre="${nombre.toLowerCase()}"
+       data-numero="${numero}"
+       style="text-decoration:none;color:inherit;display:block;margin-bottom:8px;">
+      <div style="background:white;border:1px solid ${activo ? '#0b3d2e' : '#e5e7eb'};${activo ? 'box-shadow:0 0 0 2px #0b3d2e33;' : ''}border-radius:10px;padding:10px 12px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+          <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nombre}</div>
+          <div style="font-size:11px;color:#999;flex-shrink:0;">${fecha}</div>
+        </div>
+        <div style="font-size:12px;color:#666;margin-top:2px;">${motivo}</div>
+        ${asignado && asignado.nombre !== 'Backup oficina' ? `<div style="font-size:11px;color:#0b3d2e;margin-top:4px;">👤 ${asignado.nombre}</div>` : ''}
+        ${sinResp ? `<span style="display:inline-block;margin-top:6px;background:#f1f1f1;color:#666;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;">Sin respuesta</span>` : ''}
+      </div>
+    </a>`;
 }
 
 function renderConversacionesPage(numeroSeleccionado) {
   const todas = memory.getAll();
-  const lista = Object.entries(todas)
+  const reclutamientoNumero = process.env.WHATSAPP_RECLUTAMIENTO || '';
+
+  const todasEntradas = Object.entries(todas)
     .filter(([, estado]) => estado.historial && estado.historial.length > 0)
     .sort(([, a], [, b]) => new Date(b.ultimoMensaje || 0) - new Date(a.ultimoMensaje || 0));
 
-  const reclutamientoNumero = process.env.WHATSAPP_RECLUTAMIENTO || '';
-  const filasLista = lista.map(([numero, estado]) => {
+  // Separar leads reales de los hilos internos (asesores/oficina) — esos van aparte, no son leads.
+  const leads = todasEntradas.filter(([numero, estado]) => numero !== reclutamientoNumero && !estado.esGuardia);
+  const internas = todasEntradas.filter(([numero, estado]) => numero === reclutamientoNumero || estado.esGuardia);
+
+  const porColumna = { nuevos: [], calificados: [], asignados: [] };
+  for (const [numero, estado] of leads) {
+    porColumna[columnaLead(estado)].push([numero, estado]);
+  }
+
+  const columnaTodosHtml = `
+    <div class="columna-kanban" style="min-width:260px;flex:1;display:flex;flex-direction:column;background:#f8f9fa;border-radius:12px;overflow:hidden;">
+      <div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:700;color:#0b3d2e;">Todos</span>
+        <span style="background:#0b3d2e;color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${leads.length}</span>
+      </div>
+      <div style="padding:10px;overflow-y:auto;max-height:65vh;">
+        ${leads.map(([numero, estado]) => renderTarjeta(numero, estado, numeroSeleccionado)).join('') || '<p style="color:#999;font-size:12px;padding:8px;">Sin leads todavía.</p>'}
+      </div>
+    </div>`;
+
+  const columnasHtml = COLUMNAS.map((col) => {
+    const items = porColumna[col.key];
+    return `
+      <div class="columna-kanban" style="min-width:260px;flex:1;display:flex;flex-direction:column;background:#f8f9fa;border-radius:12px;overflow:hidden;">
+        <div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:700;color:${col.color};">${col.label}</span>
+          <span style="background:${col.bg};color:${col.color};font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${items.length}</span>
+        </div>
+        <div style="padding:10px;overflow-y:auto;max-height:65vh;">
+          ${items.map(([numero, estado]) => renderTarjeta(numero, estado, numeroSeleccionado)).join('') || '<p style="color:#999;font-size:12px;padding:8px;">Sin leads acá.</p>'}
+        </div>
+      </div>`;
+  }).join('');
+
+  const internasHtml = internas.map(([numero, estado]) => {
     const nombre = numero === reclutamientoNumero
-      ? '📋 Reclutamiento (derivaciones)'
-      : estado.esGuardia
-        ? `🔔 Asesor de guardia — ${estado.nombreGuardia || numero}`
-        : (estado.datos?.nombre || numero);
-    const motivo = motivoConsulta(estado);
-    const est = estadoLead(estado);
+      ? '📋 Reclutamiento / oficina (derivaciones)'
+      : `🔔 Asesor — ${estado.nombreGuardia || numero}`;
     const fecha = tiempoRelativo(estado.ultimoMensaje);
     const activo = numero === numeroSeleccionado ? 'background:#e8f0ec;' : '';
     return `
-      <a href="/conversaciones?numero=${encodeURIComponent(numero)}"
-         class="fila-conv"
-         data-nombre="${nombre.toLowerCase()}"
-         data-numero="${numero}"
-         data-estado="${est.label}"
-         style="text-decoration:none;color:inherit;display:block;">
-        <div style="padding:12px 16px;border-bottom:1px solid #eee;${activo}">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;">
-            <div style="font-weight:700;">${nombre}</div>
-            <div style="font-size:12px;color:#999;">${fecha}</div>
-          </div>
-          <div style="font-size:13px;color:#666;margin-top:2px;">${motivo}</div>
-          <div style="margin-top:6px;">
-            <span style="background:${est.bg};color:${est.color};font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px;">${est.label}</span>
-          </div>
+      <a href="/conversaciones?numero=${encodeURIComponent(numero)}" style="text-decoration:none;color:inherit;display:block;">
+        <div style="padding:10px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;${activo}">
+          <span style="font-size:13px;font-weight:600;">${nombre}</span>
+          <span style="font-size:11px;color:#999;">${fecha}</span>
         </div>
       </a>`;
   }).join('');
 
-  let panelDerecho = '<p style="color:#999;padding:20px;">Seleccioná una conversación de la lista.</p>';
+  let panelChat = '';
   if (numeroSeleccionado && todas[numeroSeleccionado]) {
     const estado = todas[numeroSeleccionado];
     const burbujas = (estado.historial || []).map((m) => {
@@ -641,18 +692,19 @@ function renderConversacionesPage(numeroSeleccionado) {
         </div>`;
     }).join('');
 
-    panelDerecho = `
-      <div style="padding:16px;">
-        <h3 style="margin:0 0 4px;color:#0b3d2e;">${
-          numeroSeleccionado === reclutamientoNumero ? 'Reclutamiento — Derivaciones' :
-          estado.esGuardia ? `Asesor de guardia — ${estado.nombreGuardia || numeroSeleccionado}` :
-          (estado.datos?.nombre || numeroSeleccionado)
-        }</h3>
-        <p style="color:#666;font-size:13px;margin:0 0 16px;">${numeroSeleccionado} · ${
-          numeroSeleccionado === reclutamientoNumero ? 'Resúmenes enviados' :
-          estado.esGuardia ? 'Leads derivados' :
-          'Flujo: ' + (estado.flujo || '-')
-        }</p>
+    const titulo = numeroSeleccionado === reclutamientoNumero
+      ? 'Reclutamiento / oficina — Derivaciones'
+      : estado.esGuardia ? `Asesor — ${estado.nombreGuardia || numeroSeleccionado}`
+      : (estado.datos?.nombre || numeroSeleccionado);
+    const subtitulo = numeroSeleccionado === reclutamientoNumero
+      ? 'Resúmenes enviados'
+      : estado.esGuardia ? 'Leads derivados'
+      : 'Flujo: ' + (estado.flujo || '-');
+
+    panelChat = `
+      <div style="background:white;border-radius:16px;margin-top:16px;padding:16px;max-height:60vh;overflow-y:auto;">
+        <h3 style="margin:0 0 4px;color:#0b3d2e;">${titulo}</h3>
+        <p style="color:#666;font-size:13px;margin:0 0 16px;">${numeroSeleccionado} · ${subtitulo}</p>
         <div>${burbujas}</div>
       </div>`;
   }
@@ -663,61 +715,42 @@ function renderConversacionesPage(numeroSeleccionado) {
         <meta charset="utf-8">
       </head>
       <body style="background:#0b3d2e;min-height:100vh;margin:0;padding:24px;font-family:sans-serif;">
-        <div style="background:white;border-radius:16px;max-width:1000px;margin:0 auto;display:flex;min-height:600px;overflow:hidden;">
-          <div style="width:320px;border-right:1px solid #eee;display:flex;flex-direction:column;">
-            <div style="padding:16px;border-bottom:1px solid #eee;">
-              <h3 style="margin:0 0 12px;color:#0b3d2e;">Conversaciones</h3>
-              <div style="position:relative;">
+        <div style="max-width:1300px;margin:0 auto;">
+          <div style="background:white;border-radius:16px;padding:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+              <h2 style="margin:0;color:#0b3d2e;">💎 CRM de Diamantito</h2>
+              <div style="position:relative;width:260px;">
                 <input id="buscador" type="text" placeholder="Buscar nombre o número..."
                   style="width:100%;box-sizing:border-box;padding:8px 12px 8px 32px;border-radius:8px;border:1px solid #ddd;font-size:14px;">
                 <span style="position:absolute;left:10px;top:8px;color:#999;">🔍</span>
               </div>
-              <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
-                <button class="filtro-estado" data-filtro="Todos" style="padding:4px 10px;border-radius:999px;border:1px solid #ddd;background:#0b3d2e;color:white;font-size:12px;cursor:pointer;">Todos</button>
-                <button class="filtro-estado" data-filtro="Nuevo" style="padding:4px 10px;border-radius:999px;border:1px solid #ddd;background:white;color:#333;font-size:12px;cursor:pointer;">Nuevos</button>
-                <button class="filtro-estado" data-filtro="Calificado" style="padding:4px 10px;border-radius:999px;border:1px solid #ddd;background:white;color:#333;font-size:12px;cursor:pointer;">Calificados</button>
-                <button class="filtro-estado" data-filtro="Pendiente" style="padding:4px 10px;border-radius:999px;border:1px solid #ddd;background:white;color:#333;font-size:12px;cursor:pointer;">Pendientes</button>
+            </div>
+
+            <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;">
+              ${columnaTodosHtml}
+              ${columnasHtml}
+            </div>
+
+            ${panelChat}
+
+            <div style="margin-top:20px;border-top:1px solid #eee;padding-top:12px;">
+              <h4 style="margin:0 0 8px;color:#666;font-size:13px;text-transform:uppercase;letter-spacing:0.03em;">Derivaciones internas (asesores y oficina)</h4>
+              <div style="border:1px solid #eee;border-radius:10px;overflow:hidden;">
+                ${internasHtml || '<p style="padding:12px;color:#999;font-size:13px;">Todavía no hay derivaciones.</p>'}
               </div>
             </div>
-            <div id="lista-conversaciones" style="overflow-y:auto;flex:1;">
-              ${filasLista || '<p style="padding:16px;color:#999;">Sin conversaciones todavía.</p>'}
-              <p id="sin-resultados" style="display:none;padding:16px;color:#999;">Sin resultados.</p>
-            </div>
-          </div>
-          <div style="flex:1;overflow-y:auto;">
-            ${panelDerecho}
           </div>
         </div>
 
         <script>
           const buscador = document.getElementById('buscador');
-          const filas = Array.from(document.querySelectorAll('.fila-conv'));
-          const botonesFiltro = Array.from(document.querySelectorAll('.filtro-estado'));
-          const sinResultados = document.getElementById('sin-resultados');
-          let filtroActivo = 'Todos';
+          const tarjetas = Array.from(document.querySelectorAll('.tarjeta-lead'));
 
-          function aplicarFiltros() {
+          buscador.addEventListener('input', () => {
             const texto = buscador.value.trim().toLowerCase();
-            let visibles = 0;
-            filas.forEach((fila) => {
-              const coincideTexto = !texto || fila.dataset.nombre.includes(texto) || fila.dataset.numero.includes(texto);
-              const coincideEstado = filtroActivo === 'Todos' || fila.dataset.estado === filtroActivo;
-              const visible = coincideTexto && coincideEstado;
-              fila.style.display = visible ? 'block' : 'none';
-              if (visible) visibles++;
-            });
-            sinResultados.style.display = visibles === 0 ? 'block' : 'none';
-          }
-
-          buscador.addEventListener('input', aplicarFiltros);
-          botonesFiltro.forEach((boton) => {
-            boton.addEventListener('click', () => {
-              filtroActivo = boton.dataset.filtro;
-              botonesFiltro.forEach((b) => {
-                b.style.background = b === boton ? '#0b3d2e' : 'white';
-                b.style.color = b === boton ? 'white' : '#333';
-              });
-              aplicarFiltros();
+            tarjetas.forEach((t) => {
+              const coincide = !texto || t.dataset.nombre.includes(texto) || t.dataset.numero.includes(texto);
+              t.style.display = coincide ? 'block' : 'none';
             });
           });
         </script>
