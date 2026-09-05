@@ -618,6 +618,79 @@ function renderTarjeta(numero, estado, numeroSeleccionado) {
     </a>`;
 }
 
+function renderBurbujas(historial) {
+  return (historial || []).map((m) => {
+    const esUsuario = m.role === 'user';
+    const hora = m.ts
+      ? new Date(m.ts).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
+      : '';
+    return `
+      <div style="display:flex;justify-content:${esUsuario ? 'flex-start' : 'flex-end'};margin:6px 0;">
+        <div style="max-width:85%;padding:8px 11px;border-radius:12px;font-size:12px;background:${esUsuario ? '#f0f0f0' : '#0b3d2e'};color:${esUsuario ? '#222' : 'white'};">
+          ${m.content.replace(/\n/g, '<br>')}
+          ${hora ? `<div style="font-size:9px;opacity:0.55;margin-top:4px;text-align:right;">${hora}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Chat de un lead/hilo, pensado para reemplazar la lista DENTRO de su misma
+// columna (no como panel aparte) — con un botón para volver a la lista.
+function renderChatEnColumna(numero, estado, reclutamientoNumero) {
+  const titulo = numero === reclutamientoNumero
+    ? 'Reclutamiento / oficina'
+    : estado.esGuardia ? `Asesor — ${estado.nombreGuardia || numero}`
+    : (estado.datos?.nombre || numero);
+  const subtitulo = numero === reclutamientoNumero
+    ? 'Resúmenes enviados'
+    : estado.esGuardia ? 'Leads derivados'
+    : 'Flujo: ' + (estado.flujo || '-');
+
+  return `
+    <a href="/conversaciones" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;color:#0b3d2e;font-size:12px;font-weight:600;padding:8px 10px;">
+      ← Volver
+    </a>
+    <div style="padding:0 12px 10px;">
+      <div style="font-weight:700;font-size:13px;">${titulo}</div>
+      <div style="color:#666;font-size:11px;margin-bottom:8px;">${numero} · ${subtitulo}</div>
+      <div>${renderBurbujas(estado.historial)}</div>
+    </div>`;
+}
+
+// Cuerpo de una columna: si el lead seleccionado está en esta columna, muestra
+// su chat en vez de la lista de tarjetas.
+function renderCuerpoColumna(items, numeroSeleccionado, reclutamientoNumero, tarjetaFn, vacioTexto) {
+  const seleccionado = items.find(([numero]) => numero === numeroSeleccionado);
+  if (seleccionado) {
+    const [numero, estado] = seleccionado;
+    return renderChatEnColumna(numero, estado, reclutamientoNumero);
+  }
+  return `<div style="padding:10px;">${
+    items.map(([numero, estado]) => tarjetaFn(numero, estado, numeroSeleccionado)).join('') || `<p style="color:#999;font-size:12px;padding:8px;">${vacioTexto}</p>`
+  }</div>`;
+}
+
+function renderTarjetaInterna(numero, estado, numeroSeleccionado) {
+  const nombre = numero === (process.env.WHATSAPP_RECLUTAMIENTO || '')
+    ? '📋 Reclutamiento / oficina'
+    : `🔔 Asesor — ${estado.nombreGuardia || numero}`;
+  const fecha = tiempoRelativo(estado.ultimoMensaje);
+  const activo = numero === numeroSeleccionado;
+  return `
+    <a href="/conversaciones?numero=${encodeURIComponent(numero)}"
+       class="tarjeta-lead"
+       data-nombre="${nombre.toLowerCase()}"
+       data-numero="${numero}"
+       style="text-decoration:none;color:inherit;display:block;margin-bottom:8px;">
+      <div style="background:white;border:1px solid ${activo ? '#0b3d2e' : '#e5e7eb'};${activo ? 'box-shadow:0 0 0 2px #0b3d2e33;' : ''}border-radius:10px;padding:10px 12px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+          <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nombre}</div>
+          <div style="font-size:11px;color:#999;flex-shrink:0;">${fecha}</div>
+        </div>
+      </div>
+    </a>`;
+}
+
 function renderConversacionesPage(numeroSeleccionado) {
   const todas = memory.getAll();
   const reclutamientoNumero = process.env.WHATSAPP_RECLUTAMIENTO || '';
@@ -641,8 +714,8 @@ function renderConversacionesPage(numeroSeleccionado) {
         <span style="font-weight:700;color:#0b3d2e;">Todos</span>
         <span style="background:#0b3d2e;color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${leads.length}</span>
       </div>
-      <div style="padding:10px;overflow-y:auto;max-height:65vh;">
-        ${leads.map(([numero, estado]) => renderTarjeta(numero, estado, numeroSeleccionado)).join('') || '<p style="color:#999;font-size:12px;padding:8px;">Sin leads todavía.</p>'}
+      <div style="overflow-y:auto;max-height:65vh;">
+        ${renderCuerpoColumna(leads, numeroSeleccionado, reclutamientoNumero, renderTarjeta, 'Sin leads todavía.')}
       </div>
     </div>`;
 
@@ -654,31 +727,10 @@ function renderConversacionesPage(numeroSeleccionado) {
           <span style="font-weight:700;color:${col.color};">${col.label}</span>
           <span style="background:${col.bg};color:${col.color};font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${items.length}</span>
         </div>
-        <div style="padding:10px;overflow-y:auto;max-height:65vh;">
-          ${items.map(([numero, estado]) => renderTarjeta(numero, estado, numeroSeleccionado)).join('') || '<p style="color:#999;font-size:12px;padding:8px;">Sin leads acá.</p>'}
+        <div style="overflow-y:auto;max-height:65vh;">
+          ${renderCuerpoColumna(items, numeroSeleccionado, reclutamientoNumero, renderTarjeta, 'Sin leads acá.')}
         </div>
       </div>`;
-  }).join('');
-
-  const internasHtml = internas.map(([numero, estado]) => {
-    const nombre = numero === reclutamientoNumero
-      ? '📋 Reclutamiento / oficina'
-      : `🔔 Asesor — ${estado.nombreGuardia || numero}`;
-    const fecha = tiempoRelativo(estado.ultimoMensaje);
-    const activo = numero === numeroSeleccionado;
-    return `
-      <a href="/conversaciones?numero=${encodeURIComponent(numero)}"
-         class="tarjeta-lead"
-         data-nombre="${nombre.toLowerCase()}"
-         data-numero="${numero}"
-         style="text-decoration:none;color:inherit;display:block;margin-bottom:8px;">
-        <div style="background:white;border:1px solid ${activo ? '#0b3d2e' : '#e5e7eb'};${activo ? 'box-shadow:0 0 0 2px #0b3d2e33;' : ''}border-radius:10px;padding:10px 12px;">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
-            <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nombre}</div>
-            <div style="font-size:11px;color:#999;flex-shrink:0;">${fecha}</div>
-          </div>
-        </div>
-      </a>`;
   }).join('');
 
   const columnaInternasHtml = `
@@ -687,44 +739,10 @@ function renderConversacionesPage(numeroSeleccionado) {
         <span style="font-weight:700;color:#666;">Derivaciones</span>
         <span style="background:#e5e7eb;color:#666;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${internas.length}</span>
       </div>
-      <div style="padding:10px;overflow-y:auto;max-height:65vh;">
-        ${internasHtml || '<p style="color:#999;font-size:12px;padding:8px;">Sin derivaciones todavía.</p>'}
+      <div style="overflow-y:auto;max-height:65vh;">
+        ${renderCuerpoColumna(internas, numeroSeleccionado, reclutamientoNumero, renderTarjetaInterna, 'Sin derivaciones todavía.')}
       </div>
     </div>`;
-
-  let panelChat = '';
-  if (numeroSeleccionado && todas[numeroSeleccionado]) {
-    const estado = todas[numeroSeleccionado];
-    const burbujas = (estado.historial || []).map((m) => {
-      const esUsuario = m.role === 'user';
-      const hora = m.ts
-        ? new Date(m.ts).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
-        : '';
-      return `
-        <div style="display:flex;justify-content:${esUsuario ? 'flex-start' : 'flex-end'};margin:8px 0;">
-          <div style="max-width:70%;padding:10px 14px;border-radius:14px;background:${esUsuario ? '#f0f0f0' : '#0b3d2e'};color:${esUsuario ? '#222' : 'white'};">
-            ${m.content.replace(/\n/g, '<br>')}
-            ${hora ? `<div style="font-size:10px;opacity:0.55;margin-top:5px;text-align:right;">${hora}</div>` : ''}
-          </div>
-        </div>`;
-    }).join('');
-
-    const titulo = numeroSeleccionado === reclutamientoNumero
-      ? 'Reclutamiento / oficina — Derivaciones'
-      : estado.esGuardia ? `Asesor — ${estado.nombreGuardia || numeroSeleccionado}`
-      : (estado.datos?.nombre || numeroSeleccionado);
-    const subtitulo = numeroSeleccionado === reclutamientoNumero
-      ? 'Resúmenes enviados'
-      : estado.esGuardia ? 'Leads derivados'
-      : 'Flujo: ' + (estado.flujo || '-');
-
-    panelChat = `
-      <div style="background:white;border-radius:16px;margin-top:16px;padding:16px;max-height:60vh;overflow-y:auto;">
-        <h3 style="margin:0 0 4px;color:#0b3d2e;">${titulo}</h3>
-        <p style="color:#666;font-size:13px;margin:0 0 16px;">${numeroSeleccionado} · ${subtitulo}</p>
-        <div>${burbujas}</div>
-      </div>`;
-  }
 
   return `
     <html>
@@ -748,8 +766,6 @@ function renderConversacionesPage(numeroSeleccionado) {
               ${columnasHtml}
               ${columnaInternasHtml}
             </div>
-
-            ${panelChat}
           </div>
         </div>
 
