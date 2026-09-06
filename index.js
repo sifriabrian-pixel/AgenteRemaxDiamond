@@ -593,7 +593,7 @@ const COLUMNAS = [
   { key: 'asignados', label: 'Asignados', color: '#15803d', bg: '#dcfce7' },
 ];
 
-function renderTarjeta(numero, estado, numeroSeleccionado) {
+function renderTarjeta(numero, estado, numeroSeleccionado, miColumna) {
   const nombre = estado.datos?.nombre || numero;
   const motivo = motivoConsulta(estado);
   const fecha = tiempoRelativo(estado.ultimoMensaje);
@@ -601,7 +601,7 @@ function renderTarjeta(numero, estado, numeroSeleccionado) {
   const asignado = estado.datos?.asesorAsignado;
   const sinResp = sinRespuesta(estado);
   return `
-    <a href="/conversaciones?numero=${encodeURIComponent(numero)}"
+    <a href="/conversaciones?numero=${encodeURIComponent(numero)}&columna=${encodeURIComponent(miColumna)}"
        class="tarjeta-lead"
        data-nombre="${nombre.toLowerCase()}"
        data-numero="${numero}"
@@ -657,27 +657,31 @@ function renderChatEnColumna(numero, estado, reclutamientoNumero) {
     </div>`;
 }
 
-// Cuerpo de una columna: si el lead seleccionado está en esta columna, muestra
-// su chat en vez de la lista de tarjetas.
-function renderCuerpoColumna(items, numeroSeleccionado, reclutamientoNumero, tarjetaFn, vacioTexto) {
-  const seleccionado = items.find(([numero]) => numero === numeroSeleccionado);
+// Cuerpo de una columna: si el lead seleccionado fue clickeado DESDE esta
+// misma columna (columnaSeleccionada === miColumna), muestra su chat en vez
+// de la lista de tarjetas. Así el chat solo aparece en la columna donde se
+// hizo click, no en todas las columnas donde ese lead también aparece.
+function renderCuerpoColumna(items, numeroSeleccionado, columnaSeleccionada, miColumna, reclutamientoNumero, tarjetaFn, vacioTexto) {
+  const seleccionado = columnaSeleccionada === miColumna
+    ? items.find(([numero]) => numero === numeroSeleccionado)
+    : null;
   if (seleccionado) {
     const [numero, estado] = seleccionado;
     return renderChatEnColumna(numero, estado, reclutamientoNumero);
   }
   return `<div style="padding:10px;">${
-    items.map(([numero, estado]) => tarjetaFn(numero, estado, numeroSeleccionado)).join('') || `<p style="color:#999;font-size:12px;padding:8px;">${vacioTexto}</p>`
+    items.map(([numero, estado]) => tarjetaFn(numero, estado, numeroSeleccionado, miColumna)).join('') || `<p style="color:#999;font-size:12px;padding:8px;">${vacioTexto}</p>`
   }</div>`;
 }
 
-function renderTarjetaInterna(numero, estado, numeroSeleccionado) {
+function renderTarjetaInterna(numero, estado, numeroSeleccionado, miColumna) {
   const nombre = numero === (process.env.WHATSAPP_RECLUTAMIENTO || '')
     ? '📋 Reclutamiento / oficina'
     : `🔔 Asesor — ${estado.nombreGuardia || numero}`;
   const fecha = tiempoRelativo(estado.ultimoMensaje);
   const activo = numero === numeroSeleccionado;
   return `
-    <a href="/conversaciones?numero=${encodeURIComponent(numero)}"
+    <a href="/conversaciones?numero=${encodeURIComponent(numero)}&columna=${encodeURIComponent(miColumna)}"
        class="tarjeta-lead"
        data-nombre="${nombre.toLowerCase()}"
        data-numero="${numero}"
@@ -691,7 +695,7 @@ function renderTarjetaInterna(numero, estado, numeroSeleccionado) {
     </a>`;
 }
 
-function renderConversacionesPage(numeroSeleccionado) {
+function renderConversacionesPage(numeroSeleccionado, columnaSeleccionada) {
   const todas = memory.getAll();
   const reclutamientoNumero = process.env.WHATSAPP_RECLUTAMIENTO || '';
 
@@ -715,7 +719,7 @@ function renderConversacionesPage(numeroSeleccionado) {
         <span style="background:#0b3d2e;color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${leads.length}</span>
       </div>
       <div style="overflow-y:auto;max-height:65vh;">
-        ${renderCuerpoColumna(leads, numeroSeleccionado, reclutamientoNumero, renderTarjeta, 'Sin leads todavía.')}
+        ${renderCuerpoColumna(leads, numeroSeleccionado, columnaSeleccionada, 'todos', reclutamientoNumero, renderTarjeta, 'Sin leads todavía.')}
       </div>
     </div>`;
 
@@ -728,7 +732,7 @@ function renderConversacionesPage(numeroSeleccionado) {
           <span style="background:${col.bg};color:${col.color};font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${items.length}</span>
         </div>
         <div style="overflow-y:auto;max-height:65vh;">
-          ${renderCuerpoColumna(items, numeroSeleccionado, reclutamientoNumero, renderTarjeta, 'Sin leads acá.')}
+          ${renderCuerpoColumna(items, numeroSeleccionado, columnaSeleccionada, col.key, reclutamientoNumero, renderTarjeta, 'Sin leads acá.')}
         </div>
       </div>`;
   }).join('');
@@ -740,7 +744,7 @@ function renderConversacionesPage(numeroSeleccionado) {
         <span style="background:#e5e7eb;color:#666;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${internas.length}</span>
       </div>
       <div style="overflow-y:auto;max-height:65vh;">
-        ${renderCuerpoColumna(internas, numeroSeleccionado, reclutamientoNumero, renderTarjetaInterna, 'Sin derivaciones todavía.')}
+        ${renderCuerpoColumna(internas, numeroSeleccionado, columnaSeleccionada, 'derivaciones', reclutamientoNumero, renderTarjetaInterna, 'Sin derivaciones todavía.')}
       </div>
     </div>`;
 
@@ -793,8 +797,9 @@ function startServer() {
     if (parsedUrl.pathname === '/conversaciones') {
       if (!checkAuth(req, res)) return;
       const numeroSeleccionado = parsedUrl.searchParams.get('numero');
+      const columnaSeleccionada = parsedUrl.searchParams.get('columna');
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(renderConversacionesPage(numeroSeleccionado));
+      res.end(renderConversacionesPage(numeroSeleccionado, columnaSeleccionada));
       return;
     }
 
