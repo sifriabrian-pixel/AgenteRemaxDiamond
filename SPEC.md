@@ -142,12 +142,24 @@ DASHBOARD_PASSWORD=
 |---|---|
 | `[HANDOFF_PROPIETARIO]` | `asesorBackup()` → oficina de Grace (`WHATSAPP_BACKUP`) |
 | `[FOLLOWUP_PROPIETARIO]` | Fuera de horario — igual se envía a la oficina de Grace, encola el lead |
-| `[FOLLOWUP_PROPIETARIO_FUERA_COBERTURA]` | Registrar para reactivación a 30 días |
+| `[FOLLOWUP_PROPIETARIO_FUERA_COBERTURA]` | Solo se registra el dato (`fueraCobertura`), no dispara ningún seguimiento automático |
 | `[HANDOFF_ASESOR]` | Enviar resumen a `WHATSAPP_RECLUTAMIENTO` + `WHATSAPP_GRUPO_RECLUTAMIENTO` |
-| `[FOLLOWUP_ASESOR]` | Registrar para follow-up (24h, 72h, 7d) o 30d si descalificó |
+| `[FOLLOWUP_ASESOR]` | Registrar para el seguimiento único de 30 min / 24hs (ver sección de seguimientos, abajo) |
 | `[HANDOFF_COMPRADOR]` | `resolverAsesor()` → asesor asignado a la propiedad (exclusividad), o `WHATSAPP_BACKUP` |
 | `[HANDOFF_ARRENDATARIO]` | Igual que comprador |
 | `[HANDOFF_GENERAL]` | `asesorBackup()` → oficina de Grace (`WHATSAPP_BACKUP`) |
+
+---
+
+## 6.1 SEGUIMIENTOS Y REPORTE SEMANAL (`scheduler.js`)
+
+Cuando un lead deja de responder a mitad de flujo (sin llegar a `handoffListo`), se le escribe automáticamente:
+- **30 min** después del último mensaje: texto libre (dentro de la ventana de servicio de 24hs), sin plantilla.
+- **24hs** después: plantilla aprobada `recordatorio_24h` (obligatoria porque ya salió de la ventana de servicio).
+
+No hay más seguimientos después de eso (se eliminaron los de 48hs, 72hs, 7 días y reactivación a 30 días).
+
+**Reporte semanal**: todos los viernes a las 18:00 (hora Ecuador) se envía a `WHATSAPP_RECLUTAMIENTO` (Grace/oficina) un solo listado con los leads que quedaron sin calificar en la semana (columna "Nuevos" del CRM), para contacto proactivo del equipo. Usa la plantilla `notificacion_lead_reclutamiento`.
 
 ---
 

@@ -3,6 +3,26 @@ const memory = require('./memory');
 const whatsapp = require('./whatsapp');
 const { getAsesorDeGuardia } = require('./guardias');
 
+const ZONA = 'America/Guayaquil';
+
+function motivoConsulta(estado) {
+  const op = estado.datos?.operacion;
+  switch (estado.flujo) {
+    case 'propietario':
+      if (op === 'arriendo') return 'Arriendo de propiedad';
+      if (op === 'venta') return 'Venta de propiedad';
+      return 'Venta o arriendo de propiedad';
+    case 'asesor':
+      return 'Postulación a asesor';
+    case 'comprador':
+      return 'Compra de propiedad';
+    case 'arrendatario':
+      return 'Alquiler de propiedad';
+    default:
+      return 'Sin clasificar';
+  }
+}
+
 function init() {
   // Cada minuto: revisar follow-ups de propietarios fuera de horario
   cron.schedule('* * * * *', async () => {
@@ -23,89 +43,63 @@ function init() {
     }
   });
 
-  // Follow-ups a leads que no completaron (revisar cada hora)
-  cron.schedule('0 * * * *', async () => {
+  // Leads que dejaron de responder a mitad del flujo (sin calificar todavía):
+  // un mensaje a los 30 min, y uno solo a las 24hs (ya no hay más seguimientos
+  // después de eso). Se revisa cada 5 minutos para no perder el corte de 30 min.
+  const reclutamientoNumero = process.env.WHATSAPP_RECLUTAMIENTO || '';
+  cron.schedule('*/5 * * * *', async () => {
     const ahora = new Date();
     const todos = memory.getAll();
 
     for (const [numero, estado] of Object.entries(todos)) {
       if (!estado.ultimoMensaje) continue;
-      const diff = (ahora - new Date(estado.ultimoMensaje)) / 1000 / 60 / 60; // horas
+      if (estado.esGuardia || numero === reclutamientoNumero) continue; // hilos internos, no leads
+      if (estado.datos?.handoffListo) continue; // ya calificó, no hace falta insistir
 
-      if (estado.flujo === 'propietario' && !estado.datos?.handoffListo) {
-        if (diff >= 48) {
-          await enviarFollowup(numero, estado, '48h_propietario');
-        } else if (diff >= 24 && !estado.followup24h) {
-          await enviarFollowup(numero, estado, '24h_propietario');
-          memory.set(numero, { followup24h: true });
-        }
-      }
+      const diffMin = (ahora - new Date(estado.ultimoMensaje)) / 1000 / 60;
 
-      if (estado.flujo === 'asesor' && !estado.datos?.handoffListo) {
-        if (diff >= 168 && !estado.followup7d) { // 7 días
-          await enviarFollowup(numero, estado, '7d_asesor');
-          memory.set(numero, { followup7d: true });
-        } else if (diff >= 72 && !estado.followup72h) {
-          await enviarFollowup(numero, estado, '72h_asesor');
-          memory.set(numero, { followup72h: true });
-        } else if (diff >= 24 && !estado.followup24h) {
-          await enviarFollowup(numero, estado, '24h_asesor');
-          memory.set(numero, { followup24h: true });
-        }
-      }
-
-      // Reactivar propietarios fuera de cobertura a los 30 días (por si cambió su situación)
-      if (estado.datos?.fueraCobertura && diff >= 720 && !estado.followup30d_cobertura) {
-        await enviarFollowup(numero, estado, '30d_cobertura');
-        memory.set(numero, { followup30d_cobertura: true });
-      }
-
-      // Reactivar asesores descalificados a los 30 días
-      if (estado.flujo === 'asesor' && estado.datos?.descalificado && diff >= 720 && !estado.followup30d) {
-        await enviarFollowup(numero, estado, '30d_asesor');
-        memory.set(numero, { followup30d: true });
+      if (diffMin >= 1440 && !estado.followup24h) {
+        await enviarFollowup(numero, estado, '24h');
+        memory.set(numero, { followup24h: true });
+      } else if (diffMin >= 30 && !estado.followup30min) {
+        await enviarFollowup(numero, estado, '30min');
+        memory.set(numero, { followup30min: true });
       }
     }
   });
+
+  // Todos los viernes a las 18:00 (hora Ecuador): listado de leads que quedaron
+  // sin calificar en la semana, para que la oficina los retome de forma proactiva.
+  cron.schedule('0 18 * * 5', async () => {
+    try {
+      await enviarReporteSemanal();
+    } catch (e) {
+      console.error('[scheduler] Error enviando reporte semanal:', e.message);
+    }
+  }, { timezone: ZONA });
 }
 
 async function enviarFollowup(numero, estado, tipo) {
   const nombre = estado.datos?.nombre || '';
-  let texto = '';
 
-  // Todos los follow-ups usan plantillas aprobadas (obligatorio fuera de la ventana de 24hs)
-  // 24h_propietario y 24h_asesor comparten la misma plantilla genérica (recordatorio_24h)
-  const plantillas = {
-    '24h_propietario': () => whatsapp.sendTemplate(numero, 'recordatorio_24h', 'es_EC', { nombre: nombre || 'cliente' }),
-    '24h_asesor':  () => whatsapp.sendTemplate(numero, 'recordatorio_24h',      'es_EC', { nombre: nombre || 'cliente' }),
-    '72h_asesor':  () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_72h', 'es_EC', { nombre: nombre || 'cliente' }),
-    '7d_asesor':   () => whatsapp.sendTemplate(numero, 'seguimiento_asesor_7d',  'es_EC', { nombre: nombre || 'cliente' }),
-    '30d_asesor':  () => whatsapp.sendTemplate(numero, 'reactivacion_asesor_30d', 'es_EC', { nombre: nombre || 'cliente' }),
-  };
-
-  if (plantillas[tipo]) {
+  if (tipo === '24h') {
+    // Fuera de la ventana de servicio de 24hs — obligatorio usar plantilla aprobada.
     try {
-      await plantillas[tipo]();
+      await whatsapp.sendTemplate(numero, 'recordatorio_24h', 'es_EC', { nombre: nombre || 'cliente' });
     } catch (e) {
-      console.error(`[scheduler] Error enviando plantilla ${tipo} a ${numero}:`, e.message);
+      console.error(`[scheduler] Error enviando recordatorio 24h a ${numero}:`, e.message);
     }
     return;
   }
 
-  switch (tipo) {
-    case '48h_propietario':
-      texto = `${nombre || 'Hola'}, solo quería asegurarme de que no quedó con dudas. Cuando quiera retomar, acá estamos 🏠`;
-      break;
-    case '30d_cobertura':
-      texto = `¡Hola${nombre ? ' ' + nombre : ''}! Le escribo desde RE/MAX Diamond. ¿Su propiedad sigue disponible? Si la situación cambió y necesita apoyo, con gusto le orientamos 🏠`;
-      break;
-  }
-
-  if (texto) {
+  if (tipo === '30min') {
+    // Dentro de la ventana de servicio de 24hs — puede ser texto libre.
+    const texto = `¡Hola${nombre ? ' ' + nombre : ''}! 😊 ¿Seguimos con su consulta? Quedo atento por acá.`;
     try {
       await whatsapp.sendMessage(numero, texto);
+      memory.addMessage(numero, 'assistant', texto);
     } catch (e) {
-      console.error(`[scheduler] Error enviando followup ${tipo} a ${numero}:`, e.message);
+      console.error(`[scheduler] Error enviando seguimiento 30min a ${numero}:`, e.message);
     }
   }
 }
@@ -132,6 +126,48 @@ Zona: ${datos.zona || '-'}
 Antigüedad: ${datos.antiguedad || 'no informada'}
 Prioridad: ${datos.prioridad || 'Media'}
 Observación: ${datos.observacion || '-'}`;
+}
+
+// Meta no permite saltos de línea ni más de 4 espacios consecutivos en variables de plantilla
+function reclutamientoParam(texto) {
+  return texto.replace(/\n+/g, ' | ').replace(/\s{5,}/g, '    ');
+}
+
+async function enviarReporteSemanal() {
+  const reclutamientoNumero = process.env.WHATSAPP_RECLUTAMIENTO;
+  if (!reclutamientoNumero) {
+    console.warn('[scheduler] WHATSAPP_RECLUTAMIENTO no configurado — reporte semanal no enviado');
+    return;
+  }
+
+  const todos = memory.getAll();
+  const sinContestar = Object.entries(todos).filter(([numero, estado]) => {
+    if (estado.esGuardia || numero === reclutamientoNumero) return false;
+    if (!estado.historial || estado.historial.length === 0) return false;
+    return !estado.datos?.handoffListo;
+  });
+
+  if (sinContestar.length === 0) {
+    console.log('[scheduler] Reporte semanal: sin leads pendientes, no se envía.');
+    return;
+  }
+
+  const MAX_LISTADO = 25;
+  const lineas = sinContestar.slice(0, MAX_LISTADO).map(([numero, estado]) => {
+    const nombre = estado.datos?.nombre || numero;
+    return `- ${nombre} · ${numero} · ${motivoConsulta(estado)}`;
+  });
+  const extra = sinContestar.length > MAX_LISTADO ? `\n… y ${sinContestar.length - MAX_LISTADO} más.` : '';
+
+  const resumen = `📋 REPORTE SEMANAL — Leads sin calificar (${sinContestar.length})\n\n${lineas.join('\n')}${extra}\n\nPara contacto proactivo del equipo.`;
+
+  try {
+    await whatsapp.sendTemplate(reclutamientoNumero, 'notificacion_lead_reclutamiento', 'es_EC', { '1': reclutamientoParam(resumen) });
+    memory.addMessage(reclutamientoNumero, 'assistant', resumen);
+    console.log(`[scheduler] Reporte semanal enviado (${sinContestar.length} leads)`);
+  } catch (e) {
+    console.error('[scheduler] Error enviando reporte semanal:', e.message);
+  }
 }
 
 module.exports = { init, enviarResumenPropietario, formatResumenPropietario };
