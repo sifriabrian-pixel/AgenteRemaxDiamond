@@ -110,6 +110,44 @@ function getStats(fechaFiltro) {
   };
 }
 
+// Categorías clicables desde /stats — cada una mapea a los tipos de evento
+// que la componen. "derivados" es un caso especial: se dedupe por número
+// (un lead puede tener varios eventos de handoff a lo largo del tiempo, pero
+// para el listado solo importa el más reciente).
+const CATEGORIAS = {
+  atendidos: ['lead_atendido'],
+  fichas: HANDOFF_TIPOS,
+  derivados: HANDOFF_TIPOS,
+  fuera_horario: ['fuera_horario'],
+  reactivados: ['reactivado'],
+  flujo_propietario: ['flujo_propietario'],
+  flujo_asesor: ['flujo_asesor'],
+  flujo_comprador: ['flujo_comprador'],
+  flujo_arrendatario: ['flujo_arrendatario'],
+};
+
+function listarPorCategoria(categoria, fechaFiltro) {
+  const tipos = CATEGORIAS[categoria];
+  if (!tipos) return [];
+
+  const filtrados = fechaFiltro
+    ? events.filter(e => e.fecha.startsWith(fechaFiltro))
+    : events;
+  const lista = filtrados.filter(e => tipos.includes(e.tipo));
+
+  if (categoria !== 'derivados') {
+    return [...lista].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  }
+
+  // Un lead por fila, quedándose con el evento de handoff más reciente
+  const porNumero = new Map();
+  for (const e of lista) {
+    const anterior = porNumero.get(e.numero);
+    if (!anterior || e.fecha > anterior.fecha) porNumero.set(e.numero, e);
+  }
+  return [...porNumero.values()].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+}
+
 load();
 
-module.exports = { logEvent, getStats };
+module.exports = { logEvent, getStats, listarPorCategoria };

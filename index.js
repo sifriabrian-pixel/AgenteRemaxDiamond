@@ -428,17 +428,37 @@ async function procesarMensaje(numeroLimpio, texto) {
   }
 }
 
+const CATEGORIA_LABELS = {
+  atendidos: 'Leads atendidos',
+  fichas: 'Fichas enviadas',
+  derivados: 'Leads derivados',
+  fuera_horario: 'Fuera de horario',
+  reactivados: 'Leads reactivados',
+  flujo_propietario: 'Propietarios',
+  flujo_asesor: 'Prospectos asesor',
+  flujo_comprador: 'Compradores',
+  flujo_arrendatario: 'Arrendatarios',
+};
+
+function statsDetalleHref(categoria, fechaFiltro) {
+  return `/stats/detalle?tipo=${categoria}${fechaFiltro ? '&fecha=' + fechaFiltro : ''}`;
+}
+
 function renderStatsPage(fechaFiltro) {
   const s = stats.getStats(fechaFiltro);
   const desde = new Date(s.instaladoDesde).toLocaleDateString('es-EC');
   const actualizado = new Date().toLocaleString('es-EC');
 
-  const box = (valor, label) => `
-    <div style="background:#f3f4f6;border-radius:12px;padding:24px;text-align:center;">
-      <div style="font-size:32px;font-weight:800;color:#0b3d2e;">${valor}</div>
-      <div style="color:#555;margin-top:4px;">${label}</div>
-    </div>`;
-  const boxPct = (valor, label) => box(valor === null ? '–' : `${valor}%`, label);
+  const box = (valor, label, categoria) => {
+    const contenido = `
+      <div style="background:#f3f4f6;border-radius:12px;padding:24px;text-align:center;">
+        <div style="font-size:32px;font-weight:800;color:#0b3d2e;">${valor}</div>
+        <div style="color:#555;margin-top:4px;">${label}</div>
+      </div>`;
+    if (!categoria) return contenido;
+    return `<a href="${statsDetalleHref(categoria, fechaFiltro)}" style="text-decoration:none;display:block;">${contenido}</a>`;
+  };
+  const boxPct = (valor, label, categoria) => box(valor === null ? '–' : `${valor}%`, label, categoria);
 
   const flujoLabels = {
     propietario: 'Propietarios',
@@ -447,7 +467,7 @@ function renderStatsPage(fechaFiltro) {
     arrendatario: 'Arrendatarios',
   };
   const filasFlujo = Object.entries(s.porFlujo)
-    .map(([flujo, cantidad]) => `<tr><td style="padding:4px 12px;">${flujoLabels[flujo] || flujo}</td><td style="padding:4px 12px;text-align:right;font-weight:700;">${cantidad}</td></tr>`)
+    .map(([flujo, cantidad]) => `<tr><td style="padding:4px 12px;"><a href="${statsDetalleHref('flujo_' + flujo, fechaFiltro)}" style="color:#0b3d2e;text-decoration:none;">${flujoLabels[flujo] || flujo}</a></td><td style="padding:4px 12px;text-align:right;font-weight:700;">${cantidad}</td></tr>`)
     .join('');
 
   return `
@@ -469,16 +489,16 @@ function renderStatsPage(fechaFiltro) {
           </form>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;">
-            ${box(s.leadsAtendidos, 'Leads atendidos')}
-            ${box(s.fichasEnviadas, 'Fichas enviadas')}
-            ${box(s.leadsDerivados, 'Leads derivados')}
-            ${box(s.fueraHorario, 'Fuera de horario')}
+            ${box(s.leadsAtendidos, 'Leads atendidos', 'atendidos')}
+            ${box(s.fichasEnviadas, 'Fichas enviadas', 'fichas')}
+            ${box(s.leadsDerivados, 'Leads derivados', 'derivados')}
+            ${box(s.fueraHorario, 'Fuera de horario', 'fuera_horario')}
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px;">
-            ${boxPct(s.tasaCalificacion, 'Tasa de calificación')}
+            ${boxPct(s.tasaCalificacion, 'Tasa de calificación', 'derivados')}
             ${boxPct(s.tasaLectura, 'Tasa de lectura')}
-            ${boxPct(s.tasaReactivacion, 'Tasa de reactivación')}
+            ${boxPct(s.tasaReactivacion, 'Tasa de reactivación', 'reactivados')}
           </div>
 
           <h3 style="color:#0b3d2e;margin-top:28px;">Desglose por tipo de lead</h3>
@@ -486,6 +506,59 @@ function renderStatsPage(fechaFiltro) {
 
           <hr style="margin-top:24px;border:none;border-top:1px solid #eee;">
           <p style="color:#999;font-size:13px;text-align:center;">Actualizado: ${actualizado} · Se refresca cada 60s</p>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
+const HANDOFF_LABELS = {
+  handoff_propietario: 'Propietario',
+  handoff_asesor: 'Prospecto asesor',
+  handoff_comprador: 'Comprador',
+  handoff_arrendatario: 'Arrendatario',
+  handoff_general: 'Consulta general',
+};
+
+// Detalle de una categoría de /stats: lista de leads con nombre, número,
+// fecha, y — para "derivados" — a qué asesor quedó asignado cada uno.
+function renderDetalleCategoria(categoria, fechaFiltro) {
+  const eventos = stats.listarPorCategoria(categoria, fechaFiltro);
+  const todos = memory.getAll();
+  const titulo = CATEGORIA_LABELS[categoria] || 'Leads';
+
+  const filas = eventos.map((e) => {
+    const estado = todos[e.numero] || {};
+    const nombre = estado.datos?.nombre || e.numero;
+    const fecha = new Date(e.fecha).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' });
+    const asesor = estado.datos?.asesorAsignado?.nombre;
+    const detalle = categoria === 'derivados'
+      ? (asesor ? `👤 ${asesor}` : (HANDOFF_LABELS[e.tipo] || e.tipo))
+      : (HANDOFF_LABELS[e.tipo] || motivoConsulta(estado));
+    return `
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #eee;">
+          <a href="/conversaciones?numero=${encodeURIComponent(e.numero)}&columna=todos" style="color:#0b3d2e;text-decoration:none;font-weight:700;font-size:14px;">${nombre}</a>
+          <div style="font-size:11px;color:#999;margin-top:2px;">${e.numero} · ${detalle}</div>
+        </td>
+        <td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right;color:#666;font-size:12px;white-space:nowrap;">${fecha}</td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <html>
+      <head>
+        <meta charset="utf-8">
+      </head>
+      <body style="background:#0b3d2e;min-height:100vh;margin:0;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;font-family:sans-serif;">
+        <div style="background:white;border-radius:20px;padding:32px;max-width:600px;width:100%;">
+          <a href="/stats${fechaFiltro ? '?fecha=' + fechaFiltro : ''}" style="color:#0b3d2e;font-size:13px;font-weight:600;text-decoration:none;">← Volver a Stats</a>
+          <h2 style="margin:8px 0 0;color:#0b3d2e;">${titulo}</h2>
+          <p style="color:#666;margin-top:4px;">${eventos.length} lead${eventos.length === 1 ? '' : 's'}</p>
+
+          <table style="width:100%;border-collapse:collapse;margin-top:12px;">
+            ${filas || '<tr><td style="padding:16px 12px;color:#999;">Sin datos para esta categoría.</td></tr>'}
+          </table>
         </div>
       </body>
     </html>
@@ -837,6 +910,14 @@ function startServer() {
       const fechaFiltro = parsedUrl.searchParams.get('fecha') || null;
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(renderStatsPage(fechaFiltro));
+      return;
+    }
+
+    if (parsedUrl.pathname === '/stats/detalle') {
+      const categoria = parsedUrl.searchParams.get('tipo') || '';
+      const fechaFiltro = parsedUrl.searchParams.get('fecha') || null;
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(renderDetalleCategoria(categoria, fechaFiltro));
       return;
     }
 
