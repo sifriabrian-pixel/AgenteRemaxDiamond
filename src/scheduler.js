@@ -19,6 +19,8 @@ function motivoConsulta(estado) {
       return 'Compra de propiedad';
     case 'arrendatario':
       return 'Alquiler de propiedad';
+    case 'hablar_asesor':
+      return 'Quiere hablar con un asesor';
     default:
       return 'Sin clasificar';
   }

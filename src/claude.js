@@ -143,6 +143,9 @@ const SCHEMAS = {
   "codigoPropiedad": "código de la propiedad del catálogo si el lead consultó por una puntual, o null",
   "cumpleanos": "fecha de cumpleaños o null si no proporcionó"
 }`,
+  hablar_asesor: `{
+  "nombre": "nombre completo"
+}`,
 };
 
 async function extraerDatos(historial, flujo) {

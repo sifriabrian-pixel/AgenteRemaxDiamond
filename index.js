@@ -21,11 +21,13 @@ const TRIGGERS = [
   'HANDOFF_COMPRADOR',
   'HANDOFF_ARRENDATARIO',
   'HANDOFF_GENERAL',
+  'HANDOFF_HABLAR_ASESOR',
   'CONSENT_GRANTED',
   'FLUJO_PROPIETARIO',
   'FLUJO_ASESOR',
   'FLUJO_COMPRADOR',
   'FLUJO_ARRENDATARIO',
+  'FLUJO_HABLAR_ASESOR',
 ];
 
 function extractTrigger(text) {
@@ -294,6 +296,24 @@ async function handleTrigger(trigger, numeroLimpio, datos) {
         stats.logEvent('handoff_general', numeroLimpio);
         break;
       }
+
+      case 'HANDOFF_HABLAR_ASESOR': {
+        const asesorH = asesorBackup();
+        if (asesorH) {
+          const texto = `🔔 Quiere hablar con un asesor\n\nContacto: ${datos.nombre || '-'} · ${numeroLimpio}\n\nPidió hablar directamente con alguien de la oficina, sin pasar por ningún flujo de calificación.`;
+          try {
+            await whatsapp.sendTemplate(asesorH.whatsapp, 'notificacion_lead_reclutamiento', 'es_EC', { '1': reclutamientoParam(texto) });
+            memory.set(asesorH.whatsapp, { esGuardia: true, nombreGuardia: asesorH.nombre });
+            memory.addMessage(asesorH.whatsapp, 'assistant', texto);
+            console.log(`[handoff] "Hablar con asesor" derivado a ${asesorH.nombre}`);
+          } catch (e) {
+            console.error(`[handoff] FALLO notificación (hablar con asesor):`, e.message);
+          }
+        }
+        memory.set(numeroLimpio, { datos: { ...datos, handoffListo: true, asesorAsignado: asesorH || null } });
+        stats.logEvent('handoff_hablar_asesor', numeroLimpio);
+        break;
+      }
     }
   } catch (e) {
     console.error(`[handoff] Error procesando ${trigger}:`, e.message);
@@ -383,6 +403,7 @@ async function procesarMensaje(numeroLimpio, texto) {
     FLUJO_ASESOR: 'asesor',
     FLUJO_COMPRADOR: 'comprador',
     FLUJO_ARRENDATARIO: 'arrendatario',
+    FLUJO_HABLAR_ASESOR: 'hablar_asesor',
   };
   for (const [tag, flujo] of Object.entries(FLUJO_TAGS)) {
     if (respuesta.includes(`[${tag}]`)) {
@@ -409,8 +430,10 @@ async function procesarMensaje(numeroLimpio, texto) {
     const estadoActual = memory.get(numeroLimpio);
 
     // Detectar flujo desde el trigger para extraer datos correctamente
+    // (ojo: HABLAR_ASESOR va antes que ASESOR porque también contiene "ASESOR")
     const flujoDelTrigger =
       trigger.includes('PROPIETARIO') ? 'propietario' :
+      trigger.includes('HABLAR_ASESOR') ? 'hablar_asesor' :
       trigger.includes('ASESOR') ? 'asesor' :
       trigger.includes('COMPRADOR') ? 'comprador' :
       trigger.includes('ARRENDATARIO') ? 'arrendatario' : null;
@@ -518,6 +541,7 @@ const HANDOFF_LABELS = {
   handoff_comprador: 'Comprador',
   handoff_arrendatario: 'Arrendatario',
   handoff_general: 'Consulta general',
+  handoff_hablar_asesor: 'Quiere hablar con un asesor',
 };
 
 // Detalle de una categoría de /stats: lista de leads con nombre, número,
@@ -657,6 +681,8 @@ function motivoConsulta(estado) {
       return 'Compra de propiedad';
     case 'arrendatario':
       return 'Alquiler de propiedad';
+    case 'hablar_asesor':
+      return 'Quiere hablar con un asesor';
     default:
       return 'Sin clasificar';
   }
