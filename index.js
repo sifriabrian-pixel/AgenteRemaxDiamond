@@ -338,6 +338,13 @@ async function procesarMensaje(numeroLimpio, texto) {
     stats.logEvent('lead_atendido', numeroLimpio);
   }
 
+  // Si el lead responde después de un seguimiento de 30min/24h, contarlo como
+  // reactivado (una sola vez por lead, aunque mande varios mensajes seguidos).
+  if ((estado.followup30min || estado.followup24h) && !estado.reactivadoRegistrado && !estado.datos?.handoffListo) {
+    stats.logEvent('reactivado', numeroLimpio);
+    memory.set(numeroLimpio, { reactivadoRegistrado: true });
+  }
+
   // Agregar mensaje al historial
   memory.addMessage(numeroLimpio, 'user', texto);
 
@@ -431,6 +438,7 @@ function renderStatsPage(fechaFiltro) {
       <div style="font-size:32px;font-weight:800;color:#0b3d2e;">${valor}</div>
       <div style="color:#555;margin-top:4px;">${label}</div>
     </div>`;
+  const boxPct = (valor, label) => box(valor === null ? '–' : `${valor}%`, label);
 
   const flujoLabels = {
     propietario: 'Propietarios',
@@ -465,6 +473,12 @@ function renderStatsPage(fechaFiltro) {
             ${box(s.fichasEnviadas, 'Fichas enviadas')}
             ${box(s.leadsDerivados, 'Leads derivados')}
             ${box(s.fueraHorario, 'Fuera de horario')}
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px;">
+            ${boxPct(s.tasaCalificacion, 'Tasa de calificación')}
+            ${boxPct(s.tasaLectura, 'Tasa de lectura')}
+            ${boxPct(s.tasaReactivacion, 'Tasa de reactivación')}
           </div>
 
           <h3 style="color:#0b3d2e;margin-top:28px;">Desglose por tipo de lead</h3>

@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const memory = require('./memory');
 const whatsapp = require('./whatsapp');
+const stats = require('./stats');
 const { getAsesorDeGuardia } = require('./guardias');
 
 const ZONA = 'America/Guayaquil';
@@ -61,9 +62,11 @@ function init() {
       if (diffMin >= 1440 && !estado.followup24h) {
         await enviarFollowup(numero, estado, '24h');
         memory.set(numero, { followup24h: true });
+        stats.logEvent('seguimiento_24h', numero);
       } else if (diffMin >= 30 && !estado.followup30min) {
         await enviarFollowup(numero, estado, '30min');
         memory.set(numero, { followup30min: true });
+        stats.logEvent('seguimiento_30min', numero);
       }
     }
   });

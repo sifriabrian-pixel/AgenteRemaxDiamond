@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const memory = require('./memory');
 
 const STATS_FILE = process.env.SESSION_PATH
   ? path.join(process.env.SESSION_PATH, 'stats.json')
@@ -47,6 +48,30 @@ const HANDOFF_TIPOS = [
 
 const FLUJO_TIPOS = ['propietario', 'asesor', 'comprador', 'arrendatario'];
 
+// % de mensajes que le llegaron al lead (entregado o leído) que efectivamente
+// fueron leídos. Se calcula en vivo desde memory.json, no desde el log de
+// eventos, porque el estado de lectura vive en el historial de cada lead.
+function calcularTasaLectura(fechaFiltro) {
+  const todos = memory.getAll();
+  const reclutamientoNumero = process.env.WHATSAPP_RECLUTAMIENTO || '';
+  let leidos = 0;
+  let entregadosOLeidos = 0;
+
+  for (const [numero, estado] of Object.entries(todos)) {
+    if (estado.esGuardia || numero === reclutamientoNumero) continue; // hilos internos, no leads
+    for (const m of estado.historial || []) {
+      if (m.role !== 'assistant' || !m.estadoEnvio) continue;
+      if (fechaFiltro && !(m.ts || '').startsWith(fechaFiltro)) continue;
+      if (m.estadoEnvio === 'entregado' || m.estadoEnvio === 'leido') {
+        entregadosOLeidos++;
+        if (m.estadoEnvio === 'leido') leidos++;
+      }
+    }
+  }
+
+  return entregadosOLeidos > 0 ? Math.round((leidos / entregadosOLeidos) * 100) : null;
+}
+
 function getStats(fechaFiltro) {
   const filtrados = fechaFiltro
     ? events.filter(e => e.fecha.startsWith(fechaFiltro))
@@ -62,13 +87,26 @@ function getStats(fechaFiltro) {
     porFlujo[flujo] = unicos(porTipo(`flujo_${flujo}`));
   }
 
+  const leadsAtendidos = unicos(porTipo('lead_atendido'));
+  const leadsDerivados = unicos(fichas);
+  const tasaCalificacion = leadsAtendidos > 0 ? Math.round((leadsDerivados / leadsAtendidos) * 100) : null;
+
+  const conSeguimiento = unicos([...porTipo('seguimiento_30min'), ...porTipo('seguimiento_24h')]);
+  const reactivados = unicos(porTipo('reactivado'));
+  const tasaReactivacion = conSeguimiento > 0 ? Math.round((reactivados / conSeguimiento) * 100) : null;
+
   return {
-    leadsAtendidos: unicos(porTipo('lead_atendido')),
+    leadsAtendidos,
     fichasEnviadas: fichas.length,
-    leadsDerivados: unicos(fichas),
+    leadsDerivados,
     fueraHorario: porTipo('fuera_horario').length,
     porFlujo,
     instaladoDesde,
+    tasaCalificacion,
+    tasaLectura: calcularTasaLectura(fechaFiltro),
+    tasaReactivacion,
+    conSeguimiento,
+    reactivados,
   };
 }
 
