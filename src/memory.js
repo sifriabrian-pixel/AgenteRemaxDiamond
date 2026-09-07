@@ -59,6 +59,39 @@ function addMessage(numero, role, content) {
   save();
 }
 
+// Guarda el id de mensaje de WhatsApp del ÚLTIMO mensaje agregado, para poder
+// después cruzarlo con los eventos de estado (enviado/entregado/leído) que
+// manda Meta por webhook.
+function setUltimoEstadoEnvio(numero, estadoEnvio, waMessageId) {
+  const estado = get(numero);
+  const ultimo = estado.historial[estado.historial.length - 1];
+  if (!ultimo) return;
+  ultimo.estadoEnvio = estadoEnvio;
+  if (waMessageId) ultimo.waMessageId = waMessageId;
+  save();
+}
+
+// Rango de progreso de un mensaje: solo avanza (enviado → entregado → leído),
+// nunca retrocede, por si los eventos de Meta llegan desordenados.
+const RANGO_ESTADO = { enviado: 1, entregado: 2, leido: 3, fallido: 1 };
+
+function setMessageStatus(waMessageId, estadoNuevo) {
+  for (const numero of Object.keys(conversations)) {
+    const historial = conversations[numero].historial || [];
+    for (const m of historial) {
+      if (m.waMessageId === waMessageId) {
+        const actual = m.estadoEnvio;
+        if (!actual || (RANGO_ESTADO[estadoNuevo] || 0) >= (RANGO_ESTADO[actual] || 0)) {
+          m.estadoEnvio = estadoNuevo;
+        }
+        save();
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function reset(numero) {
   conversations[numero] = {
     flujo: null,
@@ -78,4 +111,4 @@ function getAll() {
 
 load();
 
-module.exports = { get, set, addMessage, reset, getAll };
+module.exports = { get, set, addMessage, reset, getAll, setUltimoEstadoEnvio, setMessageStatus };

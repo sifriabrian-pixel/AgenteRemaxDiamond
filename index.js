@@ -388,9 +388,12 @@ async function procesarMensaje(numeroLimpio, texto) {
   // Enviar respuesta al usuario
   if (textoLimpio) {
     try {
-      await whatsapp.sendMessage(numeroLimpio, textoLimpio);
+      const respuestaWA = await whatsapp.sendMessage(numeroLimpio, textoLimpio);
+      const waMessageId = respuestaWA?.messages?.[0]?.id || null;
+      memory.setUltimoEstadoEnvio(numeroLimpio, 'enviado', waMessageId);
     } catch (e) {
       console.error(`[wa] Error enviando mensaje a ${numeroLimpio}:`, e.message);
+      memory.setUltimoEstadoEnvio(numeroLimpio, 'fallido');
     }
   }
 
@@ -447,7 +450,8 @@ function renderStatsPage(fechaFiltro) {
       </head>
       <body style="background:#0b3d2e;min-height:100vh;margin:0;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;font-family:sans-serif;">
         <div style="background:white;border-radius:20px;padding:32px;max-width:600px;width:100%;">
-          <h2 style="margin:0;color:#0b3d2e;">💎 REMAX Diamond — Diamantito</h2>
+          <a href="/conversaciones" style="color:#0b3d2e;font-size:13px;font-weight:600;text-decoration:none;">← Volver al CRM</a>
+          <h2 style="margin:8px 0 0;color:#0b3d2e;">💎 REMAX Diamond — Diamantito</h2>
           <p style="color:#666;margin-top:4px;">Estadísticas del agente desde ${desde}</p>
 
           <form method="GET" action="/stats" style="margin:16px 0;display:flex;gap:8px;align-items:center;">
@@ -572,12 +576,10 @@ function motivoConsulta(estado) {
 }
 
 // Columna del Kanban: nuevos (todavía conversando) → calificados (terminó el
-// flujo, sin asesor puntual confirmado) → asignados (ya tiene asesor confirmado,
-// distinto del "Backup oficina" genérico).
+// flujo). La tarjeta ya muestra el asesor asignado cuando corresponde, no
+// hace falta una columna aparte para eso.
 function columnaLead(estado) {
   if (!estado.datos?.handoffListo) return 'nuevos';
-  const asignado = estado.datos?.asesorAsignado;
-  if (asignado && asignado.nombre && asignado.nombre !== 'Backup oficina') return 'asignados';
   return 'calificados';
 }
 
@@ -590,7 +592,6 @@ function sinRespuesta(estado) {
 const COLUMNAS = [
   { key: 'nuevos', label: 'Nuevos', color: '#1d4ed8', bg: '#dbeafe' },
   { key: 'calificados', label: 'Calificados', color: '#b45309', bg: '#fef3c7' },
-  { key: 'asignados', label: 'Asignados', color: '#15803d', bg: '#dcfce7' },
 ];
 
 function renderTarjeta(numero, estado, numeroSeleccionado, miColumna) {
@@ -618,17 +619,29 @@ function renderTarjeta(numero, estado, numeroSeleccionado, miColumna) {
     </a>`;
 }
 
+// Ícono de estado de entrega (solo aplica a mensajes que le mandamos al lead).
+function iconoEstadoEnvio(estadoEnvio) {
+  switch (estadoEnvio) {
+    case 'leido': return '<span style="color:#53bdeb;">✓✓</span>';
+    case 'entregado': return '<span style="opacity:0.7;">✓✓</span>';
+    case 'enviado': return '<span style="opacity:0.7;">✓</span>';
+    case 'fallido': return '<span style="color:#f87171;">⚠ no enviado</span>';
+    default: return '';
+  }
+}
+
 function renderBurbujas(historial) {
   return (historial || []).map((m) => {
     const esUsuario = m.role === 'user';
     const hora = m.ts
       ? new Date(m.ts).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
       : '';
+    const icono = !esUsuario ? iconoEstadoEnvio(m.estadoEnvio) : '';
     return `
       <div style="display:flex;justify-content:${esUsuario ? 'flex-start' : 'flex-end'};margin:6px 0;">
         <div style="max-width:85%;padding:8px 11px;border-radius:12px;font-size:12px;background:${esUsuario ? '#f0f0f0' : '#0b3d2e'};color:${esUsuario ? '#222' : 'white'};">
           ${m.content.replace(/\n/g, '<br>')}
-          ${hora ? `<div style="font-size:9px;opacity:0.55;margin-top:4px;text-align:right;">${hora}</div>` : ''}
+          ${hora || icono ? `<div style="font-size:9px;opacity:0.85;margin-top:4px;text-align:right;">${hora}${icono ? ' ' + icono : ''}</div>` : ''}
         </div>
       </div>`;
   }).join('');
@@ -707,7 +720,7 @@ function renderConversacionesPage(numeroSeleccionado, columnaSeleccionada) {
   const leads = todasEntradas.filter(([numero, estado]) => numero !== reclutamientoNumero && !estado.esGuardia);
   const internas = todasEntradas.filter(([numero, estado]) => numero === reclutamientoNumero || estado.esGuardia);
 
-  const porColumna = { nuevos: [], calificados: [], asignados: [] };
+  const porColumna = { nuevos: [], calificados: [] };
   for (const [numero, estado] of leads) {
     porColumna[columnaLead(estado)].push([numero, estado]);
   }
@@ -757,7 +770,10 @@ function renderConversacionesPage(numeroSeleccionado, columnaSeleccionada) {
         <div style="max-width:1300px;margin:0 auto;">
           <div style="background:white;border-radius:16px;padding:20px;">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
-              <h2 style="margin:0;color:#0b3d2e;">💎 CRM de Diamantito</h2>
+              <div style="display:flex;align-items:center;gap:16px;">
+                <h2 style="margin:0;color:#0b3d2e;">💎 CRM de Diamantito</h2>
+                <a href="/stats" style="color:#0b3d2e;font-size:13px;font-weight:600;text-decoration:none;background:#eef6f2;padding:6px 12px;border-radius:8px;">📊 Stats</a>
+              </div>
               <div style="position:relative;width:260px;">
                 <input id="buscador" type="text" placeholder="Buscar nombre o número..."
                   style="width:100%;box-sizing:border-box;padding:8px 12px 8px 32px;border-radius:8px;border:1px solid #ddd;font-size:14px;">
@@ -864,6 +880,15 @@ function startServer() {
             procesarMensaje(numeroLimpio, texto).catch((e) =>
               console.error('[webhook] Error procesando mensaje:', e.message),
             );
+          }
+
+          // Estados de entrega/lectura de los mensajes que le mandamos al lead
+          // (enviado → entregado → leído), para mostrarlos en el dashboard.
+          const ESTADOS_WA = { sent: 'enviado', delivered: 'entregado', read: 'leido', failed: 'fallido' };
+          const statuses = change.value?.statuses || [];
+          for (const st of statuses) {
+            const estado = ESTADOS_WA[st.status];
+            if (estado && st.id) memory.setMessageStatus(st.id, estado);
           }
         }
       }

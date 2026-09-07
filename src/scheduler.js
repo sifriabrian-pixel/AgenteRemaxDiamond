@@ -96,8 +96,9 @@ async function enviarFollowup(numero, estado, tipo) {
     // Dentro de la ventana de servicio de 24hs — puede ser texto libre.
     const texto = `¡Hola${nombre ? ' ' + nombre : ''}! 😊 ¿Seguimos con su consulta? Quedo atento por acá.`;
     try {
-      await whatsapp.sendMessage(numero, texto);
+      const respuestaWA = await whatsapp.sendMessage(numero, texto);
       memory.addMessage(numero, 'assistant', texto);
+      memory.setUltimoEstadoEnvio(numero, 'enviado', respuestaWA?.messages?.[0]?.id || null);
     } catch (e) {
       console.error(`[scheduler] Error enviando seguimiento 30min a ${numero}:`, e.message);
     }
