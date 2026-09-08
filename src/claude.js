@@ -15,7 +15,7 @@ const TOOLS = [
   {
     name: 'buscar_propiedades',
     description:
-      'Busca en el catálogo de propiedades ACTIVAS de RE/MAX Diamond. Usar siempre que un lead pregunte por una propiedad puntual (por código) o quiera ver opciones que coincidan con lo que busca. Nunca inventar propiedades ni datos — solo usar lo que devuelve esta herramienta. Devuelve como máximo 10 resultados; si "total" es mayor a la cantidad de resultados, pedirle al lead más detalle para acotar la búsqueda (sector, tipo, presupuesto).',
+      'Busca en el catálogo de propiedades ACTIVAS de RE/MAX Diamond. USAR SOLO cuando el lead ya identificó una propiedad puntual: por código exacto, o por una dirección/edificio/conjunto específico que él mismo nombró. NUNCA usar esta herramienta para explorar el catálogo con criterios generales (tipo, sector, presupuesto, dormitorios) sin una propiedad puntual en mente — eso es una búsqueda genérica y se resuelve calificando al lead y derivándolo a un asesor, no mostrando un listado. Nunca inventar propiedades ni datos — solo usar lo que devuelve esta herramienta.',
     input_schema: {
       type: 'object',
       properties: {
