@@ -1,89 +1,35 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const systemPromptBase = require('../prompts/diamond');
 const { getFAQPrompt } = require('./faq');
-const propiedades = require('./propiedades');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-// System prompt estático (base + FAQ). El catálogo de propiedades (800+ activas,
-// ~30.000 tokens si se metiera entero) NO se inyecta acá — Diamantito lo consulta
-// bajo demanda con la herramienta buscar_propiedades, así solo gasta tokens en
-// los resultados relevantes de cada búsqueda puntual.
+// System prompt estático (base + FAQ).
 const systemPrompt = systemPromptBase + getFAQPrompt();
 
-const TOOLS = [
-  {
-    name: 'buscar_propiedades',
-    description:
-      'Busca en el catálogo de propiedades ACTIVAS de RE/MAX Diamond. USAR SOLO cuando el lead ya identificó una propiedad puntual: por código exacto, o por una dirección/edificio/conjunto específico que él mismo nombró. NUNCA usar esta herramienta para explorar el catálogo con criterios generales (tipo, sector, presupuesto, dormitorios) sin una propiedad puntual en mente — eso es una búsqueda genérica y se resuelve calificando al lead y derivándolo a un asesor, no mostrando un listado. Nunca inventar propiedades ni datos — solo usar lo que devuelve esta herramienta.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        codigo: { type: 'string', description: 'Código exacto de una propiedad puntual, ej. EC.89.34.4.1' },
-        tipo: { type: 'string', description: 'Tipo de propiedad, ej. Casa, Departamento, Terreno, Local comercial' },
-        operacion: { type: 'string', enum: ['Venta', 'Alquiler'] },
-        sector: { type: 'string', description: 'Sector o barrio (búsqueda parcial, ej. "Manta", "Portoviejo")' },
-        dormitorios_min: { type: 'integer', description: 'Cantidad mínima de dormitorios' },
-        precio_min: { type: 'number' },
-        precio_max: { type: 'number' },
-      },
-    },
-  },
-];
-
-async function ejecutarHerramienta(nombre, input) {
-  if (nombre === 'buscar_propiedades') {
-    try {
-      const { total, resultados } = await propiedades.buscarPropiedades(input);
-      return JSON.stringify({ total, resultados });
-    } catch (e) {
-      console.error('[claude] Error en buscar_propiedades:', e.message);
-      return JSON.stringify({ error: 'No se pudo consultar el catálogo en este momento.' });
-    }
-  }
-  return JSON.stringify({ error: `Herramienta desconocida: ${nombre}` });
-}
-
+// Diamantito NO tiene ninguna herramienta para consultar el catálogo de
+// propiedades — a propósito. Su trabajo es calificar al lead y derivarlo,
+// nunca mostrarle fichas, precios ni links de propiedades puntuales (eso lo
+// hace el asesor humano). Antes existía una herramienta buscar_propiedades,
+// pero aunque el prompt decía "no la uses para búsquedas genéricas", la sola
+// presencia de la herramienta empujaba al modelo a usarla igual. La forma
+// confiable de garantizar que nunca la use es no dársela.
 function extraerTexto(content) {
   const bloqueTexto = content.find((b) => b.type === 'text');
   return bloqueTexto ? bloqueTexto.text : '';
 }
 
-const MAX_ITERACIONES_TOOL_USE = 4;
-
 async function chat(historial) {
-  const mensajes = [...historial];
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1024,
+    system: [
+      { type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } },
+    ],
+    messages: historial,
+  });
 
-  for (let i = 0; i < MAX_ITERACIONES_TOOL_USE; i++) {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system: [
-        { type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } },
-      ],
-      tools: TOOLS,
-      messages: mensajes,
-    });
-
-    if (response.stop_reason !== 'tool_use') {
-      return extraerTexto(response.content);
-    }
-
-    mensajes.push({ role: 'assistant', content: response.content });
-
-    const llamadas = response.content.filter((b) => b.type === 'tool_use');
-    const resultados = await Promise.all(
-      llamadas.map(async (llamada) => ({
-        type: 'tool_result',
-        tool_use_id: llamada.id,
-        content: await ejecutarHerramienta(llamada.name, llamada.input),
-      })),
-    );
-    mensajes.push({ role: 'user', content: resultados });
-  }
-
-  console.error('[claude] Se alcanzó el máximo de iteraciones de tool_use sin respuesta final');
-  return 'Hubo un inconveniente técnico buscando esa información. Un asesor la va a confirmar en breve.';
+  return extraerTexto(response.content);
 }
 
 // Schemas de extracción por flujo

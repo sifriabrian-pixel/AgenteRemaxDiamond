@@ -860,10 +860,21 @@ function prioridadBadge(estado) {
   if (estado.prioridad === 'urgente') {
     return `<span style="display:inline-block;margin-top:6px;margin-right:4px;background:#fee2e2;color:#b91c1c;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">🔴 Urgente</span>`;
   }
+  if (estado.prioridad === 'atendido') {
+    return `<span style="display:inline-block;margin-top:6px;margin-right:4px;background:#dcfce7;color:#15803d;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">✅ Atendido</span>`;
+  }
   if (estado.prioridad === 'descartado') {
     return `<span style="display:inline-block;margin-top:6px;margin-right:4px;background:#f1f1f1;color:#888;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">⚪ Descartado</span>`;
   }
   return '';
+}
+
+// Un lead etiquetado Urgente o Atendido por el equipo se saca de Nuevos/
+// Calificados y pasa a vivir en la columna Derivaciones (junto a los hilos de
+// asesores) — es donde Grace hace seguimiento activo. "Descartado" no mueve
+// nada, se queda en su columna normal.
+function estaEnDerivaciones(estado) {
+  return estado.prioridad === 'urgente' || estado.prioridad === 'atendido';
 }
 
 function renderTarjeta(numero, estado, numeroSeleccionado, miColumna) {
@@ -959,6 +970,7 @@ function renderChatEnColumna(numero, estado, reclutamientoNumero, miColumna) {
       ${estado.notaAutomatica ? `<div style="font-size:11px;color:#7c3aed;background:#f5f3ff;padding:6px 8px;border-radius:6px;margin-bottom:8px;">${estado.notaAutomatica}</div>` : ''}
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
         ${botonPrioridad(numero, miColumna, 'urgente', '🔴 Urgente', estado.prioridad === 'urgente', '#b91c1c')}
+        ${botonPrioridad(numero, miColumna, 'atendido', '✅ Atendido', estado.prioridad === 'atendido', '#15803d')}
         ${botonPrioridad(numero, miColumna, 'descartado', '⚪ Descartado', estado.prioridad === 'descartado', '#666')}
         ${estado.prioridad ? botonPrioridad(numero, miColumna, '', 'Quitar', false, '#999') : ''}
       </div>
@@ -1023,6 +1035,14 @@ function renderTarjetaInterna(numero, estado, numeroSeleccionado, miColumna) {
     </a>`;
 }
 
+// La columna Derivaciones mezcla hilos internos (asesores/oficina) con leads
+// reales marcados Urgente/Atendido — cada uno con su propio tipo de tarjeta.
+function renderTarjetaDerivaciones(numero, estado, numeroSeleccionado, miColumna) {
+  return estado.esGuardia || numero === (process.env.WHATSAPP_RECLUTAMIENTO || '')
+    ? renderTarjetaInterna(numero, estado, numeroSeleccionado, miColumna)
+    : renderTarjeta(numero, estado, numeroSeleccionado, miColumna);
+}
+
 function renderConversacionesPage(numeroSeleccionado, columnaSeleccionada) {
   const todas = memory.getAll();
   const reclutamientoNumero = process.env.WHATSAPP_RECLUTAMIENTO || '';
@@ -1035,8 +1055,15 @@ function renderConversacionesPage(numeroSeleccionado, columnaSeleccionada) {
   const leads = todasEntradas.filter(([numero, estado]) => numero !== reclutamientoNumero && !estado.esGuardia);
   const internas = todasEntradas.filter(([numero, estado]) => numero === reclutamientoNumero || estado.esGuardia);
 
+  // Los leads que el equipo marcó Urgente o Atendido se muestran también en
+  // Derivaciones (siguen en Todos, pero se sacan de Nuevos/Calificados).
+  const leadsFlagged = leads.filter(([, estado]) => estaEnDerivaciones(estado));
+  const derivacionesItems = [...internas, ...leadsFlagged]
+    .sort(([, a], [, b]) => new Date(b.ultimoMensaje || 0) - new Date(a.ultimoMensaje || 0));
+
   const porColumna = { nuevos: [], calificados: [] };
   for (const [numero, estado] of leads) {
+    if (estaEnDerivaciones(estado)) continue;
     porColumna[columnaLead(estado)].push([numero, estado]);
   }
 
@@ -1069,10 +1096,10 @@ function renderConversacionesPage(numeroSeleccionado, columnaSeleccionada) {
     <div class="columna-kanban" style="min-width:260px;flex:1;display:flex;flex-direction:column;background:#f8f9fa;border-radius:12px;overflow:hidden;">
       <div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
         <span style="font-weight:700;color:#666;">Derivaciones</span>
-        <span style="background:#e5e7eb;color:#666;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${internas.length}</span>
+        <span style="background:#e5e7eb;color:#666;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${derivacionesItems.length}</span>
       </div>
       <div style="overflow-y:auto;max-height:65vh;">
-        ${renderCuerpoColumna(internas, numeroSeleccionado, columnaSeleccionada, 'derivaciones', reclutamientoNumero, renderTarjetaInterna, 'Sin derivaciones todavía.')}
+        ${renderCuerpoColumna(derivacionesItems, numeroSeleccionado, columnaSeleccionada, 'derivaciones', reclutamientoNumero, renderTarjetaDerivaciones, 'Sin derivaciones todavía.')}
       </div>
     </div>`;
 
