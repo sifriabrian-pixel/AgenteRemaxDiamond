@@ -73,6 +73,96 @@ function calcularTasaLectura(fechaFiltro) {
   return entregadosOLeidos > 0 ? Math.round((leidos / entregadosOLeidos) * 100) : null;
 }
 
+// Leads atendidos por día, últimos N días (siempre, sin importar fechaFiltro
+// — el gráfico de tendencia necesita varios días para tener sentido).
+function serieDiaria(dias = 14) {
+  const hoy = new Date();
+  const diasArr = [];
+  for (let i = dias - 1; i >= 0; i--) {
+    const d = new Date(hoy);
+    d.setDate(d.getDate() - i);
+    diasArr.push(d.toISOString().slice(0, 10));
+  }
+  const porDia = {};
+  for (const dia of diasArr) porDia[dia] = 0;
+  for (const e of events) {
+    if (e.tipo !== 'lead_atendido') continue;
+    const dia = e.fecha.slice(0, 10);
+    if (dia in porDia) porDia[dia]++;
+  }
+  return diasArr.map((fecha) => ({ fecha, cantidad: porDia[fecha] }));
+}
+
+// Esta semana (últimos 7 días) vs la semana anterior — para la flecha de
+// subida/bajada. Cuenta leads únicos, no eventos.
+function compararPeriodos() {
+  const ahora = Date.now();
+  const DIA_MS = 24 * 60 * 60 * 1000;
+
+  const contarUnicos = (desde, hasta) => {
+    const nums = new Set();
+    for (const e of events) {
+      if (e.tipo !== 'lead_atendido') continue;
+      const t = new Date(e.fecha).getTime();
+      if (t >= desde && t < hasta) nums.add(e.numero);
+    }
+    return nums.size;
+  };
+
+  const actual = contarUnicos(ahora - 7 * DIA_MS, ahora);
+  const anterior = contarUnicos(ahora - 14 * DIA_MS, ahora - 7 * DIA_MS);
+  let cambioPorcentual = null;
+  if (anterior > 0) cambioPorcentual = Math.round(((actual - anterior) / anterior) * 100);
+  else if (actual > 0) cambioPorcentual = 100;
+
+  return { actual, anterior, cambioPorcentual };
+}
+
+// Manta / Portoviejo a partir de "zona" (propietario) o "sector" (comprador/
+// arrendatario) — son datos de texto libre, así que es una clasificación
+// aproximada, no exacta.
+function clasificarCiudad(datos) {
+  const zona = (datos?.zona || '').toLowerCase();
+  const sector = (datos?.sector || '').toLowerCase();
+  if (zona.includes('fuera')) return 'Fuera de cobertura';
+  if (zona.includes('portoviejo') || sector.includes('portoviejo')) return 'Portoviejo';
+  if (zona || sector) return 'Manta';
+  return 'Sin especificar';
+}
+
+function desgloseGeografico(fechaFiltro) {
+  const todos = memory.getAll();
+  const reclutamientoNumero = process.env.WHATSAPP_RECLUTAMIENTO || '';
+  const filtrados = fechaFiltro ? events.filter(e => e.fecha.startsWith(fechaFiltro)) : events;
+  const numeros = new Set(filtrados.filter(e => e.tipo === 'lead_atendido').map(e => e.numero));
+
+  const conteo = { Manta: 0, Portoviejo: 0, 'Fuera de cobertura': 0, 'Sin especificar': 0 };
+  for (const numero of numeros) {
+    const estado = todos[numero];
+    if (!estado || estado.esGuardia || numero === reclutamientoNumero) continue;
+    const ciudad = clasificarCiudad(estado.datos);
+    conteo[ciudad] = (conteo[ciudad] || 0) + 1;
+  }
+  return conteo;
+}
+
+// Venta/arriendo (propietarios) se calcula en vivo cruzando con memory.json,
+// porque el evento flujo_propietario no guarda la operación — solo el número.
+function desgloseOperacionPropietario(fechaFiltro) {
+  const todos = memory.getAll();
+  const filtrados = fechaFiltro ? events.filter(e => e.fecha.startsWith(fechaFiltro)) : events;
+  const numeros = new Set(filtrados.filter(e => e.tipo === 'flujo_propietario').map(e => e.numero));
+
+  let venta = 0, arriendo = 0, sinEspecificar = 0;
+  for (const numero of numeros) {
+    const op = (todos[numero]?.datos?.operacion || '').toLowerCase();
+    if (op.includes('arriendo')) arriendo++;
+    else if (op.includes('venta')) venta++;
+    else sinEspecificar++;
+  }
+  return { venta, arriendo, sinEspecificar };
+}
+
 function getStats(fechaFiltro) {
   const filtrados = fechaFiltro
     ? events.filter(e => e.fecha.startsWith(fechaFiltro))
@@ -96,6 +186,8 @@ function getStats(fechaFiltro) {
   const reactivados = unicos(porTipo('reactivado'));
   const tasaReactivacion = conSeguimiento > 0 ? Math.round((reactivados / conSeguimiento) * 100) : null;
 
+  const operacionPropietario = desgloseOperacionPropietario(fechaFiltro);
+
   return {
     leadsAtendidos,
     fichasEnviadas: fichas.length,
@@ -108,6 +200,15 @@ function getStats(fechaFiltro) {
     tasaReactivacion,
     conSeguimiento,
     reactivados,
+    serieTendencia: serieDiaria(14),
+    comparacionPeriodo: compararPeriodos(),
+    desgloseCiudad: desgloseGeografico(fechaFiltro),
+    desgloseOperacion: {
+      venta: operacionPropietario.venta,
+      arriendo: operacionPropietario.arriendo,
+      compra: porFlujo.comprador,
+      alquiler: porFlujo.arrendatario,
+    },
   };
 }
 

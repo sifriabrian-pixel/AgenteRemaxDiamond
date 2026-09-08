@@ -42,6 +42,8 @@ function cleanResponse(text) {
   for (const t of TRIGGERS) {
     cleaned = cleaned.replace(new RegExp(`\\[${t}\\]`, 'g'), '');
   }
+  // [PRIORIDAD_ALTA: ...] lleva contenido variable, no matchea el patrón fijo de arriba
+  cleaned = cleaned.replace(/\[PRIORIDAD_ALTA:[^\]]*\]/g, '');
   // Colapsar líneas vacías múltiples que dejan los tags y limpiar bordes
   return cleaned.replace(/\n{3,}/g, '\n\n').trim();
 }
@@ -397,6 +399,19 @@ async function procesarMensaje(numeroLimpio, texto) {
     console.log(`[consent] Consentimiento registrado para ${numeroLimpio}`);
   }
 
+  // Diamantito puede marcar un lead como urgente/alta prioridad si detecta
+  // señales claras (ver prompt). No pisa una prioridad que el equipo ya haya
+  // puesto a mano.
+  const prioridadMatch = respuesta.match(/\[PRIORIDAD_ALTA:([^\]]*)\]/);
+  if (prioridadMatch) {
+    const estadoPrioridad = memory.get(numeroLimpio);
+    if (!estadoPrioridad.prioridadManual) {
+      const motivo = prioridadMatch[1].trim();
+      memory.set(numeroLimpio, { prioridad: 'urgente', notaAutomatica: `🤖 Diamantito: ${motivo}` });
+      console.log(`[prioridad] "${numeroLimpio}" marcado urgente — ${motivo}`);
+    }
+  }
+
   // Detectar el flujo apenas se identifica (para que el dashboard lo muestre desde el primer mensaje)
   const FLUJO_TAGS = {
     FLUJO_PROPIETARIO: 'propietario',
@@ -467,6 +482,43 @@ function statsDetalleHref(categoria, fechaFiltro) {
   return `/stats/detalle?tipo=${categoria}${fechaFiltro ? '&fecha=' + fechaFiltro : ''}`;
 }
 
+function diaCorto(fechaStr) {
+  const [y, m, d] = fechaStr.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('es-EC', { weekday: 'short' }).replace('.', '');
+}
+
+function renderGraficoTendencia(serie) {
+  const maxCantidad = Math.max(1, ...serie.map((d) => d.cantidad));
+  const barras = serie.map((d) => {
+    const pct = d.cantidad > 0 ? Math.max(Math.round((d.cantidad / maxCantidad) * 100), 4) : 0;
+    return `<div title="${d.fecha}: ${d.cantidad} lead${d.cantidad === 1 ? '' : 's'}" style="flex:1;background:#0b3d2e;border-radius:3px 3px 0 0;height:${pct}%;"></div>`;
+  }).join('');
+  const labels = serie.map((d) => `<div style="flex:1;text-align:center;font-size:9px;color:#999;">${diaCorto(d.fecha)}</div>`).join('');
+  return `
+    <div style="display:flex;align-items:flex-end;gap:3px;height:90px;border-bottom:1px solid #eee;">${barras}</div>
+    <div style="display:flex;gap:3px;margin-top:4px;">${labels}</div>`;
+}
+
+function renderComparacionPeriodo(cp) {
+  let flecha = '→', color = '#666', texto = 'sin datos';
+  if (cp.cambioPorcentual !== null) {
+    texto = `${Math.abs(cp.cambioPorcentual)}%`;
+    if (cp.cambioPorcentual > 0) { flecha = '↑'; color = '#15803d'; }
+    else if (cp.cambioPorcentual < 0) { flecha = '↓'; color = '#b91c1c'; }
+  }
+  return `
+    <div style="background:#f3f4f6;border-radius:12px;padding:16px 20px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font-size:12px;color:#666;">Últimos 7 días</div>
+        <div style="font-size:24px;font-weight:800;color:#0b3d2e;">${cp.actual} leads</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;color:#666;">vs. 7 días anteriores (${cp.anterior})</div>
+        <div style="font-size:20px;font-weight:800;color:${color};">${flecha} ${texto}</div>
+      </div>
+    </div>`;
+}
+
 function renderStatsPage(fechaFiltro) {
   const s = stats.getStats(fechaFiltro);
   const desde = new Date(s.instaladoDesde).toLocaleDateString('es-EC');
@@ -493,6 +545,18 @@ function renderStatsPage(fechaFiltro) {
     .map(([flujo, cantidad]) => `<tr><td style="padding:4px 12px;"><a href="${statsDetalleHref('flujo_' + flujo, fechaFiltro)}" style="color:#0b3d2e;text-decoration:none;">${flujoLabels[flujo] || flujo}</a></td><td style="padding:4px 12px;text-align:right;font-weight:700;">${cantidad}</td></tr>`)
     .join('');
 
+  const CIUDAD_ORDEN = ['Manta', 'Portoviejo', 'Fuera de cobertura', 'Sin especificar'];
+  const filasCiudad = CIUDAD_ORDEN
+    .map((c) => `<tr><td style="padding:4px 12px;">${c}</td><td style="padding:4px 12px;text-align:right;font-weight:700;">${s.desgloseCiudad[c] || 0}</td></tr>`)
+    .join('');
+
+  const filasOperacion = [
+    ['Venta', s.desgloseOperacion.venta],
+    ['Arriendo', s.desgloseOperacion.arriendo],
+    ['Compra', s.desgloseOperacion.compra],
+    ['Alquiler', s.desgloseOperacion.alquiler],
+  ].map(([label, cantidad]) => `<tr><td style="padding:4px 12px;">${label}</td><td style="padding:4px 12px;text-align:right;font-weight:700;">${cantidad}</td></tr>`).join('');
+
   return `
     <html>
       <head>
@@ -500,7 +564,7 @@ function renderStatsPage(fechaFiltro) {
         <meta charset="utf-8">
       </head>
       <body style="background:#0b3d2e;min-height:100vh;margin:0;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;font-family:sans-serif;">
-        <div style="background:white;border-radius:20px;padding:32px;max-width:600px;width:100%;">
+        <div style="background:white;border-radius:20px;padding:32px;max-width:680px;width:100%;">
           <a href="/conversaciones" style="color:#0b3d2e;font-size:13px;font-weight:600;text-decoration:none;">← Volver al CRM</a>
           <h2 style="margin:8px 0 0;color:#0b3d2e;">💎 REMAX Diamond — Diamantito</h2>
           <p style="color:#666;margin-top:4px;">Estadísticas del agente desde ${desde}</p>
@@ -522,6 +586,22 @@ function renderStatsPage(fechaFiltro) {
             ${boxPct(s.tasaCalificacion, 'Tasa de calificación', 'derivados')}
             ${boxPct(s.tasaLectura, 'Tasa de lectura')}
             ${boxPct(s.tasaReactivacion, 'Tasa de reactivación', 'reactivados')}
+          </div>
+
+          ${renderComparacionPeriodo(s.comparacionPeriodo)}
+
+          <h3 style="color:#0b3d2e;margin-top:28px;margin-bottom:12px;">Tendencia — últimos 14 días</h3>
+          ${renderGraficoTendencia(s.serieTendencia)}
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px;">
+            <div>
+              <h3 style="color:#0b3d2e;margin:0 0 8px;">Por ciudad</h3>
+              <table style="width:100%;border-collapse:collapse;">${filasCiudad}</table>
+            </div>
+            <div>
+              <h3 style="color:#0b3d2e;margin:0 0 8px;">Por operación</h3>
+              <table style="width:100%;border-collapse:collapse;">${filasOperacion}</table>
+            </div>
           </div>
 
           <h3 style="color:#0b3d2e;margin-top:28px;">Desglose por tipo de lead</h3>
@@ -702,10 +782,71 @@ function sinRespuesta(estado) {
   return horas > 24 && !estado.datos?.handoffListo;
 }
 
+function csvEscape(valor) {
+  const texto = String(valor ?? '');
+  return /[",\n]/.test(texto) ? '"' + texto.replace(/"/g, '""') + '"' : texto;
+}
+
+// Exporta todos los leads (no las derivaciones internas) a CSV para trabajar
+// fuera del dashboard — no respeta los filtros del buscador (esos corren solo
+// en el navegador), exporta siempre la lista completa.
+function generarCSVLeads() {
+  const todos = memory.getAll();
+  const reclutamientoNumero = process.env.WHATSAPP_RECLUTAMIENTO || '';
+  const columnas = ['Nombre', 'Numero', 'Flujo', 'Motivo', 'Sector', 'Operacion', 'Presupuesto', 'Estado', 'Asesor asignado', 'Prioridad', 'Nota', 'Ultimo mensaje'];
+  const filas = [columnas.join(',')];
+
+  for (const [numero, estado] of Object.entries(todos)) {
+    if (estado.esGuardia || numero === reclutamientoNumero) continue;
+    if (!estado.historial || estado.historial.length === 0) continue;
+    const fila = [
+      estado.datos?.nombre || '',
+      numero,
+      estado.flujo || '',
+      motivoConsulta(estado),
+      estado.datos?.sector || '',
+      estado.datos?.operacion || '',
+      estado.datos?.presupuesto || estado.datos?.precio || '',
+      columnaLead(estado) === 'nuevos' ? 'Nuevo' : 'Calificado',
+      estado.datos?.asesorAsignado?.nombre || '',
+      estado.prioridad || '',
+      estado.nota || '',
+      estado.ultimoMensaje ? new Date(estado.ultimoMensaje).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' }) : '',
+    ].map(csvEscape);
+    filas.push(fila.join(','));
+  }
+
+  return filas.join('\n');
+}
+
 const COLUMNAS = [
   { key: 'nuevos', label: 'Nuevos', color: '#1d4ed8', bg: '#dbeafe' },
   { key: 'calificados', label: 'Calificados', color: '#b45309', bg: '#fef3c7' },
 ];
+
+// Normaliza la operación de un lead a un valor de filtro simple.
+function operacionFiltro(estado) {
+  const op = (estado.datos?.operacion || '').toLowerCase();
+  switch (estado.flujo) {
+    case 'propietario':
+      if (op.includes('arriendo')) return 'arriendo';
+      if (op.includes('venta')) return 'venta';
+      return '';
+    case 'comprador': return 'compra';
+    case 'arrendatario': return 'alquiler';
+    default: return '';
+  }
+}
+
+function prioridadBadge(estado) {
+  if (estado.prioridad === 'urgente') {
+    return `<span style="display:inline-block;margin-top:6px;margin-right:4px;background:#fee2e2;color:#b91c1c;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">🔴 Urgente</span>`;
+  }
+  if (estado.prioridad === 'descartado') {
+    return `<span style="display:inline-block;margin-top:6px;margin-right:4px;background:#f1f1f1;color:#888;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">⚪ Descartado</span>`;
+  }
+  return '';
+}
 
 function renderTarjeta(numero, estado, numeroSeleccionado, miColumna) {
   const nombre = estado.datos?.nombre || numero;
@@ -714,11 +855,15 @@ function renderTarjeta(numero, estado, numeroSeleccionado, miColumna) {
   const activo = numero === numeroSeleccionado;
   const asignado = estado.datos?.asesorAsignado;
   const sinResp = sinRespuesta(estado);
+  const notaTexto = estado.nota || estado.notaAutomatica || '';
   return `
     <a href="/conversaciones?numero=${encodeURIComponent(numero)}&columna=${encodeURIComponent(miColumna)}"
        class="tarjeta-lead"
        data-nombre="${nombre.toLowerCase()}"
        data-numero="${numero}"
+       data-sector="${(estado.datos?.sector || '').toLowerCase()}"
+       data-operacion="${operacionFiltro(estado)}"
+       data-sinrespuesta="${sinResp ? '1' : '0'}"
        style="text-decoration:none;color:inherit;display:block;margin-bottom:8px;">
       <div style="background:white;border:1px solid ${activo ? '#0b3d2e' : '#e5e7eb'};${activo ? 'box-shadow:0 0 0 2px #0b3d2e33;' : ''}border-radius:10px;padding:10px 12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
@@ -728,6 +873,8 @@ function renderTarjeta(numero, estado, numeroSeleccionado, miColumna) {
         <div style="font-size:12px;color:#666;margin-top:2px;">${motivo}</div>
         ${asignado && asignado.nombre !== 'Backup oficina' ? `<div style="font-size:11px;color:#0b3d2e;margin-top:4px;">👤 ${asignado.nombre}</div>` : ''}
         ${sinResp ? `<span style="display:inline-block;margin-top:6px;background:#f1f1f1;color:#666;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;">Sin respuesta</span>` : ''}
+        ${prioridadBadge(estado)}
+        ${notaTexto ? `<div style="font-size:11px;color:#555;margin-top:4px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📝 ${notaTexto}</div>` : ''}
       </div>
     </a>`;
 }
@@ -760,9 +907,20 @@ function renderBurbujas(historial) {
   }).join('');
 }
 
+function botonPrioridad(numero, miColumna, valor, label, activo, colorActivo) {
+  return `
+    <form method="POST" action="/conversaciones/prioridad" style="margin:0;">
+      <input type="hidden" name="numero" value="${numero}">
+      <input type="hidden" name="columna" value="${miColumna}">
+      <input type="hidden" name="prioridad" value="${valor}">
+      <button type="submit" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid ${activo ? colorActivo : '#ddd'};background:${activo ? colorActivo + '22' : 'white'};color:${activo ? colorActivo : '#555'};cursor:pointer;white-space:nowrap;">${label}</button>
+    </form>`;
+}
+
 // Chat de un lead/hilo, pensado para reemplazar la lista DENTRO de su misma
-// columna (no como panel aparte) — con un botón para volver a la lista.
-function renderChatEnColumna(numero, estado, reclutamientoNumero) {
+// columna (no como panel aparte) — con un botón para volver a la lista, y
+// abajo las notas internas / prioridad manual (no aplica a hilos internos).
+function renderChatEnColumna(numero, estado, reclutamientoNumero, miColumna) {
   const titulo = numero === reclutamientoNumero
     ? 'Reclutamiento / oficina'
     : estado.esGuardia ? `Asesor — ${estado.nombreGuardia || numero}`
@@ -771,6 +929,25 @@ function renderChatEnColumna(numero, estado, reclutamientoNumero) {
     ? 'Resúmenes enviados'
     : estado.esGuardia ? 'Leads derivados'
     : 'Flujo: ' + (estado.flujo || '-');
+  const esLead = numero !== reclutamientoNumero && !estado.esGuardia;
+
+  const seccionNotas = !esLead ? '' : `
+    <div style="padding:10px 12px 12px;border-top:1px solid #eee;">
+      ${estado.notaAutomatica ? `<div style="font-size:11px;color:#7c3aed;background:#f5f3ff;padding:6px 8px;border-radius:6px;margin-bottom:8px;">${estado.notaAutomatica}</div>` : ''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+        ${botonPrioridad(numero, miColumna, 'urgente', '🔴 Urgente', estado.prioridad === 'urgente', '#b91c1c')}
+        ${botonPrioridad(numero, miColumna, 'descartado', '⚪ Descartado', estado.prioridad === 'descartado', '#666')}
+        ${estado.prioridad ? botonPrioridad(numero, miColumna, '', 'Quitar', false, '#999') : ''}
+      </div>
+      <form method="POST" action="/conversaciones/nota">
+        <input type="hidden" name="numero" value="${numero}">
+        <input type="hidden" name="columna" value="${miColumna}">
+        <label style="font-size:11px;font-weight:700;color:#555;">📝 Nota interna</label>
+        <textarea name="nota" rows="2" placeholder="Ej: en seguimiento, no contesta..."
+          style="width:100%;box-sizing:border-box;font-size:12px;padding:6px;border-radius:6px;border:1px solid #ddd;margin-top:4px;resize:vertical;font-family:inherit;">${estado.nota || ''}</textarea>
+        <button type="submit" style="margin-top:6px;font-size:11px;padding:5px 12px;border-radius:6px;border:none;background:#0b3d2e;color:white;cursor:pointer;">Guardar nota</button>
+      </form>
+    </div>`;
 
   return `
     <a href="/conversaciones" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;color:#0b3d2e;font-size:12px;font-weight:600;padding:8px 10px;">
@@ -780,7 +957,8 @@ function renderChatEnColumna(numero, estado, reclutamientoNumero) {
       <div style="font-weight:700;font-size:13px;">${titulo}</div>
       <div style="color:#666;font-size:11px;margin-bottom:8px;">${numero} · ${subtitulo}</div>
       <div>${renderBurbujas(estado.historial)}</div>
-    </div>`;
+    </div>
+    ${seccionNotas}`;
 }
 
 // Cuerpo de una columna: si el lead seleccionado fue clickeado DESDE esta
@@ -793,7 +971,7 @@ function renderCuerpoColumna(items, numeroSeleccionado, columnaSeleccionada, miC
     : null;
   if (seleccionado) {
     const [numero, estado] = seleccionado;
-    return renderChatEnColumna(numero, estado, reclutamientoNumero);
+    return renderChatEnColumna(numero, estado, reclutamientoNumero, miColumna);
   }
   return `<div style="padding:10px;">${
     items.map(([numero, estado]) => tarjetaFn(numero, estado, numeroSeleccionado, miColumna)).join('') || `<p style="color:#999;font-size:12px;padding:8px;">${vacioTexto}</p>`
@@ -882,16 +1060,33 @@ function renderConversacionesPage(numeroSeleccionado, columnaSeleccionada) {
       <body style="background:#0b3d2e;min-height:100vh;margin:0;padding:24px;font-family:sans-serif;">
         <div style="max-width:1300px;margin:0 auto;">
           <div style="background:white;border-radius:16px;padding:20px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
               <div style="display:flex;align-items:center;gap:16px;">
                 <h2 style="margin:0;color:#0b3d2e;">💎 CRM de Diamantito</h2>
                 <a href="/stats" style="color:#0b3d2e;font-size:13px;font-weight:600;text-decoration:none;background:#eef6f2;padding:6px 12px;border-radius:8px;">📊 Stats</a>
+                <a href="/conversaciones/exportar.csv" style="color:#0b3d2e;font-size:13px;font-weight:600;text-decoration:none;background:#eef6f2;padding:6px 12px;border-radius:8px;">⬇️ Exportar CSV</a>
               </div>
               <div style="position:relative;width:260px;">
                 <input id="buscador" type="text" placeholder="Buscar nombre o número..."
                   style="width:100%;box-sizing:border-box;padding:8px 12px 8px 32px;border-radius:8px;border:1px solid #ddd;font-size:14px;">
                 <span style="position:absolute;left:10px;top:8px;color:#999;">🔍</span>
               </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+              <input id="filtroSector" type="text" placeholder="Filtrar por sector..."
+                style="padding:6px 10px;border-radius:8px;border:1px solid #ddd;font-size:12px;width:160px;">
+              <select id="filtroOperacion" style="padding:6px 10px;border-radius:8px;border:1px solid #ddd;font-size:12px;">
+                <option value="">Todas las operaciones</option>
+                <option value="venta">Venta</option>
+                <option value="arriendo">Arriendo</option>
+                <option value="compra">Compra</option>
+                <option value="alquiler">Alquiler</option>
+              </select>
+              <label style="font-size:12px;color:#555;display:flex;align-items:center;gap:4px;cursor:pointer;">
+                <input id="filtroSinRespuesta" type="checkbox"> Sin respuesta
+              </label>
+              <a href="#" id="limpiarFiltros" style="font-size:12px;color:#999;text-decoration:underline;">Limpiar filtros</a>
             </div>
 
             <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;">
@@ -904,14 +1099,37 @@ function renderConversacionesPage(numeroSeleccionado, columnaSeleccionada) {
 
         <script>
           const buscador = document.getElementById('buscador');
+          const filtroSector = document.getElementById('filtroSector');
+          const filtroOperacion = document.getElementById('filtroOperacion');
+          const filtroSinRespuesta = document.getElementById('filtroSinRespuesta');
+          const limpiarFiltros = document.getElementById('limpiarFiltros');
           const tarjetas = Array.from(document.querySelectorAll('.tarjeta-lead'));
 
-          buscador.addEventListener('input', () => {
+          function aplicarFiltros() {
             const texto = buscador.value.trim().toLowerCase();
+            const sector = filtroSector.value.trim().toLowerCase();
+            const operacion = filtroOperacion.value;
+            const soloSinRespuesta = filtroSinRespuesta.checked;
+
             tarjetas.forEach((t) => {
-              const coincide = !texto || t.dataset.nombre.includes(texto) || t.dataset.numero.includes(texto);
-              t.style.display = coincide ? 'block' : 'none';
+              const coincideTexto = !texto || t.dataset.nombre.includes(texto) || t.dataset.numero.includes(texto);
+              const coincideSector = !sector || (t.dataset.sector || '').includes(sector);
+              const coincideOperacion = !operacion || t.dataset.operacion === operacion;
+              const coincideSinResp = !soloSinRespuesta || t.dataset.sinrespuesta === '1';
+              const visible = coincideTexto && coincideSector && coincideOperacion && coincideSinResp;
+              t.style.display = visible ? 'block' : 'none';
             });
+          }
+
+          [buscador, filtroSector].forEach((el) => el.addEventListener('input', aplicarFiltros));
+          [filtroOperacion, filtroSinRespuesta].forEach((el) => el.addEventListener('change', aplicarFiltros));
+          limpiarFiltros.addEventListener('click', (e) => {
+            e.preventDefault();
+            buscador.value = '';
+            filtroSector.value = '';
+            filtroOperacion.value = '';
+            filtroSinRespuesta.checked = false;
+            aplicarFiltros();
           });
         </script>
       </body>
@@ -929,6 +1147,42 @@ function startServer() {
       const columnaSeleccionada = parsedUrl.searchParams.get('columna');
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(renderConversacionesPage(numeroSeleccionado, columnaSeleccionada));
+      return;
+    }
+
+    if (parsedUrl.pathname === '/conversaciones/nota' && req.method === 'POST') {
+      if (!checkAuth(req, res)) return;
+      const body = await readBody(req);
+      const params = new URLSearchParams(body.toString('utf8'));
+      const numero = params.get('numero');
+      const columna = params.get('columna') || '';
+      if (numero) memory.set(numero, { nota: (params.get('nota') || '').trim() });
+      res.writeHead(302, { Location: `/conversaciones?numero=${encodeURIComponent(numero || '')}&columna=${encodeURIComponent(columna)}` });
+      res.end();
+      return;
+    }
+
+    if (parsedUrl.pathname === '/conversaciones/prioridad' && req.method === 'POST') {
+      if (!checkAuth(req, res)) return;
+      const body = await readBody(req);
+      const params = new URLSearchParams(body.toString('utf8'));
+      const numero = params.get('numero');
+      const columna = params.get('columna') || '';
+      // Cualquier acción manual (incluso "quitar") queda marcada como manual,
+      // para que Diamantito ya no pise esta decisión con el marcado automático.
+      if (numero) memory.set(numero, { prioridad: params.get('prioridad') || null, prioridadManual: true });
+      res.writeHead(302, { Location: `/conversaciones?numero=${encodeURIComponent(numero || '')}&columna=${encodeURIComponent(columna)}` });
+      res.end();
+      return;
+    }
+
+    if (parsedUrl.pathname === '/conversaciones/exportar.csv') {
+      if (!checkAuth(req, res)) return;
+      res.writeHead(200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="leads_diamantito.csv"',
+      });
+      res.end('﻿' + generarCSVLeads());
       return;
     }
 
