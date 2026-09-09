@@ -6,6 +6,7 @@ const memory = require('./src/memory');
 const scheduler = require('./src/scheduler');
 const guardias = require('./src/guardias');
 const propiedades = require('./src/propiedades');
+const pautadas = require('./src/pautadas');
 const stats = require('./src/stats');
 const whatsapp = require('./src/whatsapp');
 
@@ -42,8 +43,10 @@ function cleanResponse(text) {
   for (const t of TRIGGERS) {
     cleaned = cleaned.replace(new RegExp(`\\[${t}\\]`, 'g'), '');
   }
-  // [PRIORIDAD_ALTA: ...] lleva contenido variable, no matchea el patrón fijo de arriba
+  // [PRIORIDAD_ALTA: ...] y [HANDOFF_PAUTADA:...] llevan contenido variable,
+  // no matchean el patrón fijo de arriba
   cleaned = cleaned.replace(/\[PRIORIDAD_ALTA:[^\]]*\]/g, '');
+  cleaned = cleaned.replace(/\[HANDOFF_PAUTADA:[^\]]*\]/g, '');
   // Colapsar líneas vacías múltiples que dejan los tags y limpiar bordes
   return cleaned.replace(/\n{3,}/g, '\n\n').trim();
 }
@@ -103,6 +106,46 @@ Dormitorios: ${datos.dormitorios || '-'}
 Mascotas: ${datos.mascotas || '-'} · Estacionamiento: ${datos.estacionamiento || '-'} · Ascensor: ${datos.ascensor || '-'}
 Presupuesto mensual: ${datos.presupuesto || '-'}
 Propiedad consultada: ${datos.codigoPropiedad || '-'}`;
+}
+
+function formatResumenPautada(telefono, nombre, pautada) {
+  return `🔔 Lead de propiedad pautada
+
+Contacto: ${nombre || '-'} · ${telefono}
+Propiedad: ${pautada.tipo} — ${pautada.descripcion}
+Link: ${pautada.url}`;
+}
+
+// Propiedad pautada (ver src/pautadas.js): a diferencia de una consulta común,
+// acá SÍ le pasamos el link con la ficha al lead y derivamos directo al
+// asesor a cargo de esa propiedad puntual, sin pasar por la calificación.
+async function handlePautada(idPautada, numeroLimpio, nombre) {
+  const pautada = pautadas.getPautadaPorId(idPautada);
+  if (!pautada) {
+    console.warn(`[pautada] Diamantito emitió un id que no existe en la lista: "${idPautada}"`);
+    return;
+  }
+
+  const resumen = formatResumenPautada(numeroLimpio, nombre, pautada);
+  try {
+    await notificarAsesor(pautada.asesorWhatsapp, resumen);
+    memory.set(pautada.asesorWhatsapp, { esGuardia: true, nombreGuardia: pautada.asesorNombre });
+    memory.addMessage(pautada.asesorWhatsapp, 'assistant', resumen);
+    console.log(`[pautada] "${idPautada}" derivado a ${pautada.asesorNombre}`);
+  } catch (e) {
+    console.error(`[pautada] FALLO notificación (${idPautada}):`, e.message);
+  }
+
+  memory.set(numeroLimpio, {
+    flujo: 'pautada',
+    datos: {
+      nombre,
+      handoffListo: true,
+      asesorAsignado: { nombre: pautada.asesorNombre, whatsapp: pautada.asesorWhatsapp },
+      propiedadPautada: pautada.id,
+    },
+  });
+  stats.logEvent('handoff_pautada', numeroLimpio);
 }
 
 // Cada propiedad tiene exclusividad de un asesor (no hay sistema de guardia por
@@ -429,6 +472,18 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
     }
   }
 
+  // Propiedad pautada: Diamantito la reconoció por tipo/zona (o por el
+  // anuncio de origen) y decidió pasarle la ficha directo al lead, saltando
+  // la calificación. Se deriva directo al asesor a cargo de esa propiedad.
+  const pautadaMatch = respuesta.match(/\[HANDOFF_PAUTADA:([^\]]*)\]/);
+  if (pautadaMatch) {
+    const idPautada = pautadaMatch[1].trim();
+    const estadoActual = memory.get(numeroLimpio);
+    const historialActual = estadoActual.historial.filter(m => m.role === 'user' || m.role === 'assistant');
+    const { nombre } = await extraerDatos(historialActual, 'pautada');
+    await handlePautada(idPautada, numeroLimpio, nombre);
+  }
+
   // Detectar el flujo apenas se identifica (para que el dashboard lo muestre desde el primer mensaje)
   const FLUJO_TAGS = {
     FLUJO_PROPIETARIO: 'propietario',
@@ -639,6 +694,7 @@ const HANDOFF_LABELS = {
   handoff_arrendatario: 'Arrendatario',
   handoff_general: 'Consulta general',
   handoff_hablar_asesor: 'Quiere hablar con un asesor',
+  handoff_pautada: 'Propiedad pautada',
 };
 
 // Detalle de una categoría de /stats: lista de leads con nombre, número,
@@ -780,6 +836,8 @@ function motivoConsulta(estado) {
       return 'Alquiler de propiedad';
     case 'hablar_asesor':
       return 'Quiere hablar con un asesor';
+    case 'pautada':
+      return 'Propiedad pautada';
     default:
       return 'Sin clasificar';
   }

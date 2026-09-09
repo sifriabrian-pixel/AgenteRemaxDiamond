@@ -21,6 +21,8 @@ function motivoConsulta(estado) {
       return 'Alquiler de propiedad';
     case 'hablar_asesor':
       return 'Quiere hablar con un asesor';
+    case 'pautada':
+      return 'Propiedad pautada';
     default:
       return 'Sin clasificar';
   }

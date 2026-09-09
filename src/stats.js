@@ -45,6 +45,7 @@ const HANDOFF_TIPOS = [
   'handoff_arrendatario',
   'handoff_general',
   'handoff_hablar_asesor',
+  'handoff_pautada',
 ];
 
 const FLUJO_TIPOS = ['propietario', 'asesor', 'comprador', 'arrendatario'];

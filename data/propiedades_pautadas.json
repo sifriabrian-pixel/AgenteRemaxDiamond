@@ -1,0 +1,50 @@
+[
+  {
+    "id": "terreno-chone",
+    "tipo": "Terreno comercial",
+    "descripcion": "Terreno comercial en Chone, By Pass (cerca de Josefinas)",
+    "url": "https://www.remax.com.ec/listings/terreno-comercial-de-venta-en-chone-by-pass-josefi",
+    "asesorNombre": "Paulette Guerron",
+    "asesorWhatsapp": "593999283821"
+  },
+  {
+    "id": "terreno-manta-sur",
+    "tipo": "Terreno",
+    "descripcion": "Terreno frente al mar en Manta, zona sur",
+    "url": "https://www.remax.com.ec/listings/terreno-frente-al-mar-de-venta-en-manta-zona-sur-1",
+    "asesorNombre": "Yonny Tuárez",
+    "asesorWhatsapp": "593987239487"
+  },
+  {
+    "id": "centro-comercial-portoviejo",
+    "tipo": "Centro comercial",
+    "descripcion": "Centro comercial en Portoviejo, zona comercial",
+    "url": "https://www.remax.com.ec/listings/centro-comercial-de-venta-portoviejo-zona-comercia",
+    "asesorNombre": "Francisca Vega",
+    "asesorWhatsapp": "593991334072"
+  },
+  {
+    "id": "casa-montecristi",
+    "tipo": "Casa",
+    "descripcion": "Casa en Montecristi, Manabí",
+    "url": "https://www.remax.com.ec/listings/casa-de-venta-en-montecristi-manabi-ecuador",
+    "asesorNombre": "Gabriela Zambrano",
+    "asesorWhatsapp": "593989562265"
+  },
+  {
+    "id": "terreno-los-esteros",
+    "tipo": "Terreno",
+    "descripcion": "Terreno en Manta, zona Los Esteros",
+    "url": "https://www.remax.com.ec/listings/terreno-de-venta-en-manta-zona-los-esteros-1",
+    "asesorNombre": "Gabriela Zambrano",
+    "asesorWhatsapp": "593989562265"
+  },
+  {
+    "id": "departamento-manta-sur",
+    "tipo": "Departamento",
+    "descripcion": "Departamento en Manta, zona sur",
+    "url": "https://www.remax.com.ec/listings/departamento-de-venta-en-manta-zona-sur-11",
+    "asesorNombre": "Gabriela Zambrano",
+    "asesorWhatsapp": "593989562265"
+  }
+]

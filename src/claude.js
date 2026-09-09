@@ -92,6 +92,9 @@ const SCHEMAS = {
   hablar_asesor: `{
   "nombre": "nombre completo"
 }`,
+  pautada: `{
+  "nombre": "nombre completo"
+}`,
 };
 
 async function extraerDatos(historial, flujo) {
