@@ -93,7 +93,9 @@ const SCHEMAS = {
   "nombre": "nombre completo"
 }`,
   pautada: `{
-  "nombre": "nombre completo"
+  "nombre": "nombre completo, o null si no lo dio",
+  "interes": "vivir / inversión / uso propio, según lo que haya respondido, o null si no se preguntó todavía",
+  "duda": "pregunta o duda puntual que planteó sobre la propiedad, o null si no hizo ninguna"
 }`,
 };
 

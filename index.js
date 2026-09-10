@@ -139,25 +139,27 @@ Presupuesto mensual: ${datos.presupuesto || '-'}
 Propiedad consultada: ${datos.codigoPropiedad || '-'}`;
 }
 
-function formatResumenPautada(telefono, nombre, pautada) {
+function formatResumenPautada(telefono, datos, pautada) {
   return `🔔 Lead de propiedad pautada
 
-Contacto: ${nombre || '-'} · ${telefono}
+Contacto: ${datos.nombre || '-'} · ${telefono}
 Propiedad: ${pautada.tipo} — ${pautada.descripcion}
-Link: ${pautada.url}`;
+Link: ${pautada.url}
+Interés: ${datos.interes || '-'}
+Duda planteada: ${datos.duda || '-'}`;
 }
 
 // Propiedad pautada (ver src/pautadas.js): a diferencia de una consulta común,
 // acá SÍ le pasamos el link con la ficha al lead y derivamos directo al
 // asesor a cargo de esa propiedad puntual, sin pasar por la calificación.
-async function handlePautada(idPautada, numeroLimpio, nombre) {
+async function handlePautada(idPautada, numeroLimpio, datos) {
   const pautada = pautadas.getPautadaPorId(idPautada);
   if (!pautada) {
     console.warn(`[pautada] Diamantito emitió un id que no existe en la lista: "${idPautada}"`);
     return;
   }
 
-  const resumen = formatResumenPautada(numeroLimpio, nombre, pautada);
+  const resumen = formatResumenPautada(numeroLimpio, datos, pautada);
   try {
     await notificarAsesor(pautada.asesorWhatsapp, resumen);
     memory.set(pautada.asesorWhatsapp, { esGuardia: true, nombreGuardia: pautada.asesorNombre });
@@ -170,7 +172,7 @@ async function handlePautada(idPautada, numeroLimpio, nombre) {
   memory.set(numeroLimpio, {
     flujo: 'pautada',
     datos: {
-      nombre,
+      ...datos,
       handoffListo: true,
       asesorAsignado: { nombre: pautada.asesorNombre, whatsapp: pautada.asesorWhatsapp },
       propiedadPautada: pautada.id,
@@ -511,8 +513,8 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
     const idPautada = pautadaMatch[1].trim();
     const estadoActual = memory.get(numeroLimpio);
     const historialActual = estadoActual.historial.filter(m => m.role === 'user' || m.role === 'assistant');
-    const { nombre } = await extraerDatos(historialActual, 'pautada');
-    await handlePautada(idPautada, numeroLimpio, nombre);
+    const datosPautada = await extraerDatos(historialActual, 'pautada');
+    await handlePautada(idPautada, numeroLimpio, datosPautada);
   }
 
   // Detectar el flujo apenas se identifica (para que el dashboard lo muestre desde el primer mensaje)
