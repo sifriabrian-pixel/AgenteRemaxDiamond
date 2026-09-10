@@ -13,6 +13,37 @@ const whatsapp = require('./src/whatsapp');
 const NUMEROS_AUTORIZADOS = (process.env.NUMEROS_AUTORIZADOS || '').split(',').map(n => n.trim()).filter(Boolean);
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 
+// Identidad visual del dashboard interno (Sifer CRM) — separada de la marca
+// del cliente. El cliente se muestra como DATO dentro del header (CLIENT_NAME
+// / CLIENT_LOCATION), nunca como marca de la herramienta. Paleta alineada con
+// sifer.pro (sitio de marketing), no con el producto CRMPulsetrack (que usa
+// otra tipografía/paleta) — decisión tomada explícitamente, no un descuido.
+const MARCA = {
+  navy: '#0D1B2A',
+  navyMid: '#162235',
+  blue: '#2762EA',
+  blueLight: '#4A7EF5',
+  blueSoft: '#EAF0FD',
+};
+const CLIENT_NAME = process.env.CLIENT_NAME || 'RE/MAX Diamond';
+const CLIENT_LOCATION = process.env.CLIENT_LOCATION || 'Manta';
+
+const FUENTES_HEAD = `
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230D1B2A'/%3E%3Ctext x='16' y='23' font-family='Montserrat,sans-serif' font-weight='800' font-size='18' fill='%232762EA' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
+`;
+
+// Header con la marca de la herramienta (Sifer CRM) + el cliente como dato
+// secundario debajo — no como parte del nombre de la herramienta.
+function renderMarcaHeader() {
+  return `
+    <div style="display:flex;flex-direction:column;">
+      <span style="font-family:'Montserrat',sans-serif;font-weight:800;font-size:19px;color:${MARCA.navy};line-height:1.1;">Si<span style="color:${MARCA.blue};">fer</span> <span style="font-weight:600;color:#8a94a6;font-size:14px;">CRM</span></span>
+      <span style="font-family:'Poppins',sans-serif;font-size:11px;color:#8a94a6;margin-top:2px;">${CLIENT_NAME} · ${CLIENT_LOCATION}</span>
+    </div>`;
+}
+
 const TRIGGERS = [
   'HANDOFF_PROPIETARIO',
   'FOLLOWUP_PROPIETARIO',
@@ -563,7 +594,7 @@ function renderGraficoTendencia(serie) {
   const maxCantidad = Math.max(1, ...serie.map((d) => d.cantidad));
   const barras = serie.map((d) => {
     const pct = d.cantidad > 0 ? Math.max(Math.round((d.cantidad / maxCantidad) * 100), 4) : 0;
-    return `<div title="${d.fecha}: ${d.cantidad} lead${d.cantidad === 1 ? '' : 's'}" style="flex:1;background:#0b3d2e;border-radius:3px 3px 0 0;height:${pct}%;"></div>`;
+    return `<div title="${d.fecha}: ${d.cantidad} lead${d.cantidad === 1 ? '' : 's'}" style="flex:1;background:${MARCA.blue};border-radius:3px 3px 0 0;height:${pct}%;"></div>`;
   }).join('');
   const labels = serie.map((d) => `<div style="flex:1;text-align:center;font-size:9px;color:#999;">${diaCorto(d.fecha)}</div>`).join('');
   return `
@@ -582,7 +613,7 @@ function renderComparacionPeriodo(cp) {
     <div style="background:#f3f4f6;border-radius:12px;padding:16px 20px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
       <div>
         <div style="font-size:12px;color:#666;">Últimos 7 días</div>
-        <div style="font-size:24px;font-weight:800;color:#0b3d2e;">${cp.actual} leads</div>
+        <div style="font-size:24px;font-weight:800;color:${MARCA.navy};font-family:'Montserrat',sans-serif;">${cp.actual} leads</div>
       </div>
       <div style="text-align:right;">
         <div style="font-size:12px;color:#666;">vs. 7 días anteriores (${cp.anterior})</div>
@@ -599,7 +630,7 @@ function renderStatsPage(fechaFiltro) {
   const box = (valor, label, categoria) => {
     const contenido = `
       <div style="background:#f3f4f6;border-radius:12px;padding:24px;text-align:center;">
-        <div style="font-size:32px;font-weight:800;color:#0b3d2e;">${valor}</div>
+        <div style="font-size:32px;font-weight:800;color:${MARCA.navy};font-family:'Montserrat',sans-serif;">${valor}</div>
         <div style="color:#555;margin-top:4px;">${label}</div>
       </div>`;
     if (!categoria) return contenido;
@@ -614,7 +645,7 @@ function renderStatsPage(fechaFiltro) {
     arrendatario: 'Arrendatarios',
   };
   const filasFlujo = Object.entries(s.porFlujo)
-    .map(([flujo, cantidad]) => `<tr><td style="padding:4px 12px;"><a href="${statsDetalleHref('flujo_' + flujo, fechaFiltro)}" style="color:#0b3d2e;text-decoration:none;">${flujoLabels[flujo] || flujo}</a></td><td style="padding:4px 12px;text-align:right;font-weight:700;">${cantidad}</td></tr>`)
+    .map(([flujo, cantidad]) => `<tr><td style="padding:4px 12px;"><a href="${statsDetalleHref('flujo_' + flujo, fechaFiltro)}" style="color:${MARCA.blue};text-decoration:none;">${flujoLabels[flujo] || flujo}</a></td><td style="padding:4px 12px;text-align:right;font-weight:700;">${cantidad}</td></tr>`)
     .join('');
 
   const CIUDAD_ORDEN = ['Manta', 'Portoviejo', 'Fuera de cobertura', 'Sin especificar'];
@@ -634,17 +665,20 @@ function renderStatsPage(fechaFiltro) {
       <head>
         <meta http-equiv="refresh" content="60">
         <meta charset="utf-8">
+        <title>Sifer CRM — Stats</title>
+        ${FUENTES_HEAD}
       </head>
-      <body style="background:#0b3d2e;min-height:100vh;margin:0;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;font-family:sans-serif;">
+      <body style="background:${MARCA.navy};min-height:100vh;margin:0;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;font-family:'Poppins',sans-serif;">
         <div style="background:white;border-radius:20px;padding:32px;max-width:680px;width:100%;">
-          <a href="/conversaciones" style="color:#0b3d2e;font-size:13px;font-weight:600;text-decoration:none;">← Volver al CRM</a>
-          <h2 style="margin:8px 0 0;color:#0b3d2e;">💎 REMAX Diamond — Diamantito</h2>
-          <p style="color:#666;margin-top:4px;">Estadísticas del agente desde ${desde}</p>
+          <a href="/conversaciones" style="color:${MARCA.blue};font-size:13px;font-weight:600;text-decoration:none;">← Volver al CRM</a>
+          <div style="margin:10px 0 2px;">${renderMarcaHeader()}</div>
+          <p style="color:#666;margin-top:10px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:17px;">Estadísticas</p>
+          <p style="color:#666;margin-top:-8px;font-size:13px;">Desde ${desde}</p>
 
           <form method="GET" action="/stats" style="margin:16px 0;display:flex;gap:8px;align-items:center;">
             <input type="date" name="fecha" value="${fechaFiltro || ''}" style="padding:6px 10px;border-radius:8px;border:1px solid #ccc;">
-            <button type="submit" style="padding:6px 14px;border-radius:8px;border:none;background:#0b3d2e;color:white;cursor:pointer;">Filtrar</button>
-            <a href="/stats" style="color:#0b3d2e;text-decoration:underline;">Ver todo</a>
+            <button type="submit" style="padding:6px 14px;border-radius:8px;border:none;background:${MARCA.blue};color:white;cursor:pointer;">Filtrar</button>
+            <a href="/stats" style="color:${MARCA.blue};text-decoration:underline;">Ver todo</a>
           </form>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;">
@@ -662,21 +696,21 @@ function renderStatsPage(fechaFiltro) {
 
           ${renderComparacionPeriodo(s.comparacionPeriodo)}
 
-          <h3 style="color:#0b3d2e;margin-top:28px;margin-bottom:12px;">Tendencia — últimos 14 días</h3>
+          <h3 style="color:${MARCA.navy};font-family:'Montserrat',sans-serif;margin-top:28px;margin-bottom:12px;">Tendencia — últimos 14 días</h3>
           ${renderGraficoTendencia(s.serieTendencia)}
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px;">
             <div>
-              <h3 style="color:#0b3d2e;margin:0 0 8px;">Por ciudad</h3>
+              <h3 style="color:${MARCA.navy};font-family:'Montserrat',sans-serif;margin:0 0 8px;">Por ciudad</h3>
               <table style="width:100%;border-collapse:collapse;">${filasCiudad}</table>
             </div>
             <div>
-              <h3 style="color:#0b3d2e;margin:0 0 8px;">Por operación</h3>
+              <h3 style="color:${MARCA.navy};font-family:'Montserrat',sans-serif;margin:0 0 8px;">Por operación</h3>
               <table style="width:100%;border-collapse:collapse;">${filasOperacion}</table>
             </div>
           </div>
 
-          <h3 style="color:#0b3d2e;margin-top:28px;">Desglose por tipo de lead</h3>
+          <h3 style="color:${MARCA.navy};font-family:'Montserrat',sans-serif;margin-top:28px;">Desglose por tipo de lead</h3>
           <table style="width:100%;border-collapse:collapse;">${filasFlujo}</table>
 
           <hr style="margin-top:24px;border:none;border-top:1px solid #eee;">
@@ -715,7 +749,7 @@ function renderDetalleCategoria(categoria, fechaFiltro) {
     return `
       <tr>
         <td style="padding:10px 12px;border-bottom:1px solid #eee;">
-          <a href="/conversaciones?numero=${encodeURIComponent(e.numero)}&columna=todos" style="color:#0b3d2e;text-decoration:none;font-weight:700;font-size:14px;">${nombre}</a>
+          <a href="/conversaciones?numero=${encodeURIComponent(e.numero)}&columna=todos" style="color:${MARCA.blue};text-decoration:none;font-weight:700;font-size:14px;">${nombre}</a>
           <div style="font-size:11px;color:#999;margin-top:2px;">${e.numero} · ${detalle}</div>
         </td>
         <td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right;color:#666;font-size:12px;white-space:nowrap;">${fecha}</td>
@@ -726,11 +760,13 @@ function renderDetalleCategoria(categoria, fechaFiltro) {
     <html>
       <head>
         <meta charset="utf-8">
+        <title>Sifer CRM — ${titulo}</title>
+        ${FUENTES_HEAD}
       </head>
-      <body style="background:#0b3d2e;min-height:100vh;margin:0;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;font-family:sans-serif;">
+      <body style="background:${MARCA.navy};min-height:100vh;margin:0;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;font-family:'Poppins',sans-serif;">
         <div style="background:white;border-radius:20px;padding:32px;max-width:600px;width:100%;">
-          <a href="/stats${fechaFiltro ? '?fecha=' + fechaFiltro : ''}" style="color:#0b3d2e;font-size:13px;font-weight:600;text-decoration:none;">← Volver a Stats</a>
-          <h2 style="margin:8px 0 0;color:#0b3d2e;">${titulo}</h2>
+          <a href="/stats${fechaFiltro ? '?fecha=' + fechaFiltro : ''}" style="color:${MARCA.blue};font-size:13px;font-weight:600;text-decoration:none;">← Volver a Stats</a>
+          <h2 style="margin:8px 0 0;color:${MARCA.navy};font-family:'Montserrat',sans-serif;">${titulo}</h2>
           <p style="color:#666;margin-top:4px;">${eventos.length} lead${eventos.length === 1 ? '' : 's'}</p>
 
           <table style="width:100%;border-collapse:collapse;margin-top:12px;">
@@ -803,7 +839,7 @@ function checkAuth(req, res) {
 
   if (pass === password) return true;
 
-  res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="RE/MAX Diamond"' });
+  res.writeHead(401, { 'WWW-Authenticate': `Basic realm="${CLIENT_NAME}"` });
   res.end('Acceso restringido');
   return false;
 }
@@ -955,13 +991,13 @@ function renderTarjeta(numero, estado, numeroSeleccionado, miColumna) {
        data-operacion="${operacionFiltro(estado)}"
        data-sinrespuesta="${sinResp ? '1' : '0'}"
        style="text-decoration:none;color:inherit;display:block;margin-bottom:8px;">
-      <div style="background:white;border:1px solid ${activo ? '#0b3d2e' : '#e5e7eb'};${activo ? 'box-shadow:0 0 0 2px #0b3d2e33;' : ''}border-radius:10px;padding:10px 12px;">
+      <div style="background:white;border:1px solid ${activo ? MARCA.blue : '#e5e7eb'};${activo ? `box-shadow:0 0 0 2px ${MARCA.blue}33;` : ''}border-radius:10px;padding:10px 12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
           <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nombre}</div>
           <div style="font-size:11px;color:#999;flex-shrink:0;">${fecha}</div>
         </div>
         <div style="font-size:12px;color:#666;margin-top:2px;">${motivo}</div>
-        ${asignado && asignado.nombre !== 'Backup oficina' ? `<div style="font-size:11px;color:#0b3d2e;margin-top:4px;">👤 ${asignado.nombre}</div>` : ''}
+        ${asignado && asignado.nombre !== 'Backup oficina' ? `<div style="font-size:11px;color:${MARCA.blue};margin-top:4px;">👤 ${asignado.nombre}</div>` : ''}
         ${sinResp ? `<span style="display:inline-block;margin-top:6px;background:#f1f1f1;color:#666;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;">Sin respuesta</span>` : ''}
         ${prioridadBadge(estado)}
         ${notaTexto ? `<div style="font-size:11px;color:#555;margin-top:4px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📝 ${notaTexto}</div>` : ''}
@@ -989,7 +1025,7 @@ function renderBurbujas(historial) {
     const icono = !esUsuario ? iconoEstadoEnvio(m.estadoEnvio) : '';
     return `
       <div style="display:flex;justify-content:${esUsuario ? 'flex-start' : 'flex-end'};margin:6px 0;">
-        <div style="max-width:85%;padding:8px 11px;border-radius:12px;font-size:12px;background:${esUsuario ? '#f0f0f0' : '#0b3d2e'};color:${esUsuario ? '#222' : 'white'};">
+        <div style="max-width:85%;padding:8px 11px;border-radius:12px;font-size:12px;background:${esUsuario ? '#f0f0f0' : MARCA.navy};color:${esUsuario ? '#222' : 'white'};">
           ${m.content.replace(/\n/g, '<br>')}
           ${hora || icono ? `<div style="font-size:9px;opacity:0.85;margin-top:4px;text-align:right;">${hora}${icono ? ' ' + icono : ''}</div>` : ''}
         </div>
@@ -1022,7 +1058,7 @@ function renderChatEnColumna(numero, estado, reclutamientoNumero, miColumna) {
   const esLead = numero !== reclutamientoNumero && !estado.esGuardia;
 
   const origenHtml = esLead && estado.origen ? `
-    <div style="font-size:11px;color:#0b3d2e;background:#eef6f2;padding:6px 8px;border-radius:6px;margin-bottom:8px;">
+    <div style="font-size:11px;color:${MARCA.blue};background:${MARCA.blueSoft};padding:6px 8px;border-radius:6px;margin-bottom:8px;">
       📣 Vino de un ${estado.origen.fuente === 'post' ? 'post' : 'anuncio'} de Meta${estado.origen.titulo ? `: "${estado.origen.titulo}"` : ''}
     </div>` : '';
 
@@ -1042,12 +1078,12 @@ function renderChatEnColumna(numero, estado, reclutamientoNumero, miColumna) {
         <label style="font-size:11px;font-weight:700;color:#555;">📝 Nota interna</label>
         <textarea name="nota" rows="2" placeholder="Ej: en seguimiento, no contesta..."
           style="width:100%;box-sizing:border-box;font-size:12px;padding:6px;border-radius:6px;border:1px solid #ddd;margin-top:4px;resize:vertical;font-family:inherit;">${estado.nota || ''}</textarea>
-        <button type="submit" style="margin-top:6px;font-size:11px;padding:5px 12px;border-radius:6px;border:none;background:#0b3d2e;color:white;cursor:pointer;">Guardar nota</button>
+        <button type="submit" style="margin-top:6px;font-size:11px;padding:5px 12px;border-radius:6px;border:none;background:${MARCA.blue};color:white;cursor:pointer;">Guardar nota</button>
       </form>
     </div>`;
 
   return `
-    <a href="/conversaciones" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;color:#0b3d2e;font-size:12px;font-weight:600;padding:8px 10px;">
+    <a href="/conversaciones" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;color:${MARCA.blue};font-size:12px;font-weight:600;padding:8px 10px;">
       ← Volver
     </a>
     <div style="padding:0 12px 10px;">
@@ -1088,7 +1124,7 @@ function renderTarjetaInterna(numero, estado, numeroSeleccionado, miColumna) {
        data-nombre="${nombre.toLowerCase()}"
        data-numero="${numero}"
        style="text-decoration:none;color:inherit;display:block;margin-bottom:8px;">
-      <div style="background:white;border:1px solid ${activo ? '#0b3d2e' : '#e5e7eb'};${activo ? 'box-shadow:0 0 0 2px #0b3d2e33;' : ''}border-radius:10px;padding:10px 12px;">
+      <div style="background:white;border:1px solid ${activo ? MARCA.blue : '#e5e7eb'};${activo ? `box-shadow:0 0 0 2px ${MARCA.blue}33;` : ''}border-radius:10px;padding:10px 12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
           <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nombre}</div>
           <div style="font-size:11px;color:#999;flex-shrink:0;">${fecha}</div>
@@ -1132,8 +1168,8 @@ function renderConversacionesPage(numeroSeleccionado, columnaSeleccionada) {
   const columnaTodosHtml = `
     <div class="columna-kanban" style="min-width:260px;flex:1;display:flex;flex-direction:column;background:#f8f9fa;border-radius:12px;overflow:hidden;">
       <div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-weight:700;color:#0b3d2e;">Todos</span>
-        <span style="background:#0b3d2e;color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${leads.length}</span>
+        <span style="font-weight:700;color:${MARCA.navy};font-family:'Montserrat',sans-serif;">Todos</span>
+        <span style="background:${MARCA.blue};color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${leads.length}</span>
       </div>
       <div style="overflow-y:auto;max-height:65vh;">
         ${renderCuerpoColumna(leads, numeroSeleccionado, columnaSeleccionada, 'todos', reclutamientoNumero, renderTarjeta, 'Sin leads todavía.')}
@@ -1169,15 +1205,17 @@ function renderConversacionesPage(numeroSeleccionado, columnaSeleccionada) {
     <html>
       <head>
         <meta charset="utf-8">
+        <title>Sifer CRM</title>
+        ${FUENTES_HEAD}
       </head>
-      <body style="background:#0b3d2e;min-height:100vh;margin:0;padding:24px;font-family:sans-serif;">
+      <body style="background:${MARCA.navy};min-height:100vh;margin:0;padding:24px;font-family:'Poppins',sans-serif;">
         <div style="max-width:1300px;margin:0 auto;">
           <div style="background:white;border-radius:16px;padding:20px;">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
               <div style="display:flex;align-items:center;gap:16px;">
-                <h2 style="margin:0;color:#0b3d2e;">💎 CRM de Diamantito</h2>
-                <a href="/stats" style="color:#0b3d2e;font-size:13px;font-weight:600;text-decoration:none;background:#eef6f2;padding:6px 12px;border-radius:8px;">📊 Stats</a>
-                <a href="/conversaciones/exportar.csv" style="color:#0b3d2e;font-size:13px;font-weight:600;text-decoration:none;background:#eef6f2;padding:6px 12px;border-radius:8px;">⬇️ Exportar CSV</a>
+                ${renderMarcaHeader()}
+                <a href="/stats" style="color:${MARCA.blue};font-size:13px;font-weight:600;text-decoration:none;background:${MARCA.blueSoft};padding:6px 12px;border-radius:8px;">📊 Stats</a>
+                <a href="/conversaciones/exportar.csv" style="color:${MARCA.blue};font-size:13px;font-weight:600;text-decoration:none;background:${MARCA.blueSoft};padding:6px 12px;border-radius:8px;">⬇️ Exportar CSV</a>
               </div>
               <div style="position:relative;width:260px;">
                 <input id="buscador" type="text" placeholder="Buscar nombre o número..."
@@ -1291,9 +1329,12 @@ function startServer() {
 
     if (parsedUrl.pathname === '/conversaciones/exportar.csv') {
       if (!checkAuth(req, res)) return;
+      const nombreArchivo = 'leads_' + CLIENT_NAME.toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '.csv';
       res.writeHead(200, {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="leads_diamantito.csv"',
+        'Content-Disposition': `attachment; filename="${nombreArchivo}"`,
       });
       res.end('﻿' + generarCSVLeads());
       return;
