@@ -921,18 +921,21 @@ function prioridadBadge(estado) {
   if (estado.prioridad === 'atendido') {
     return `<span style="display:inline-block;margin-top:6px;margin-right:4px;background:#dcfce7;color:#15803d;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">✅ Atendido</span>`;
   }
+  if (estado.prioridad === 'asignado') {
+    return `<span style="display:inline-block;margin-top:6px;margin-right:4px;background:#ede9fe;color:#6d28d9;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">🔵 Asignado</span>`;
+  }
   if (estado.prioridad === 'descartado') {
     return `<span style="display:inline-block;margin-top:6px;margin-right:4px;background:#f1f1f1;color:#888;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">⚪ Descartado</span>`;
   }
   return '';
 }
 
-// Un lead etiquetado Urgente o Atendido por el equipo se saca de Nuevos/
-// Calificados y pasa a vivir en la columna Derivaciones (junto a los hilos de
-// asesores) — es donde Grace hace seguimiento activo. "Descartado" no mueve
-// nada, se queda en su columna normal.
+// Un lead etiquetado Urgente, Atendido o Asignado (a mano, por el equipo) se
+// saca de Nuevos/Calificados y pasa a vivir en la columna Derivaciones (junto
+// a los hilos de asesores) — es donde Grace hace seguimiento activo.
+// "Descartado" no mueve nada, se queda en su columna normal.
 function estaEnDerivaciones(estado) {
-  return estado.prioridad === 'urgente' || estado.prioridad === 'atendido';
+  return estado.prioridad === 'urgente' || estado.prioridad === 'atendido' || estado.prioridad === 'asignado';
 }
 
 function renderTarjeta(numero, estado, numeroSeleccionado, miColumna) {
@@ -1029,6 +1032,7 @@ function renderChatEnColumna(numero, estado, reclutamientoNumero, miColumna) {
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
         ${botonPrioridad(numero, miColumna, 'urgente', '🔴 Urgente', estado.prioridad === 'urgente', '#b91c1c')}
         ${botonPrioridad(numero, miColumna, 'atendido', '✅ Atendido', estado.prioridad === 'atendido', '#15803d')}
+        ${botonPrioridad(numero, miColumna, 'asignado', '🔵 Asignado', estado.prioridad === 'asignado', '#6d28d9')}
         ${botonPrioridad(numero, miColumna, 'descartado', '⚪ Descartado', estado.prioridad === 'descartado', '#666')}
         ${estado.prioridad ? botonPrioridad(numero, miColumna, '', 'Quitar', false, '#999') : ''}
       </div>
