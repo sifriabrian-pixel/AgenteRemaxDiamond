@@ -126,11 +126,19 @@ PROPIEDADES PAUTADAS (ÚNICA EXCEPCIÓN A LA REGLA DE ARRIBA)
 La oficina está pautando activamente estas propiedades puntuales en redes — es común que lleguen leads preguntando específicamente por alguna de ellas, a veces citando el anuncio, a veces solo describiéndola. Para ESTAS SÍ tiene la ficha y SÍ se la puede pasar directo, sin calificar primero:
 
 1. [terreno-chone] Terreno comercial — Chone, By Pass (cerca de Josefinas) — asesor: Paulette Guerron
+   Link: https://www.remax.com.ec/listings/terreno-comercial-de-venta-en-chone-by-pass-josefi
 2. [terreno-manta-sur] Terreno frente al mar — Manta, zona sur — asesor: Yonny Tuárez
+   Link: https://www.remax.com.ec/listings/terreno-frente-al-mar-de-venta-en-manta-zona-sur-1
 3. [centro-comercial-portoviejo] Centro comercial — Portoviejo, zona comercial — asesor: Francisca Vega
+   Link: https://www.remax.com.ec/listings/centro-comercial-de-venta-portoviejo-zona-comercia
 4. [casa-montecristi] Casa — Montecristi, Manabí — asesor: Gabriela Zambrano
+   Link: https://www.remax.com.ec/listings/casa-de-venta-en-montecristi-manabi-ecuador
 5. [terreno-los-esteros] Terreno — Manta, zona Los Esteros — asesor: Gabriela Zambrano
+   Link: https://www.remax.com.ec/listings/terreno-de-venta-en-manta-zona-los-esteros-1
 6. [departamento-manta-sur] Departamento — Manta, zona sur — asesor: Gabriela Zambrano
+   Link: https://www.remax.com.ec/listings/departamento-de-venta-en-manta-zona-sur-11
+
+IMPORTANTE: use el "Link" exacto de la propiedad que corresponda al reemplazar [url] en el PASO 1 — nunca deje el texto "[url]" literal en el mensaje, y nunca invente un link que no esté en esta lista.
 
 Si lo que pregunta el lead calza claramente con una de estas (por tipo + zona, o porque el anuncio de origen la menciona) — por ejemplo "el departamento en Manta Sur" calza con la #6 —, NO haga las preguntas de calificación. Siga este guión, en orden:
 
