@@ -1062,6 +1062,7 @@ function renderChatEnColumna(numero, estado, reclutamientoNumero, miColumna) {
   const origenHtml = esLead && estado.origen ? `
     <div style="font-size:11px;color:${MARCA.blue};background:${MARCA.blueSoft};padding:6px 8px;border-radius:6px;margin-bottom:8px;">
       📣 Vino de un ${estado.origen.fuente === 'post' ? 'post' : 'anuncio'} de Meta${estado.origen.titulo ? `: "${estado.origen.titulo}"` : ''}
+      ${estado.origen.url ? `<div style="margin-top:2px;"><a href="${estado.origen.url}" target="_blank" rel="noopener" style="color:${MARCA.blue};text-decoration:underline;">Ver anuncio ↗</a></div>` : ''}
     </div>` : '';
 
   const seccionNotas = !esLead ? '' : `
