@@ -73,8 +73,7 @@ const SCHEMAS = {
   "sector": "sector o barrio en Manta o Portoviejo",
   "dormitorios": "número de dormitorios",
   "presupuesto": "presupuesto estimado",
-  "codigoPropiedad": "código de la propiedad del catálogo si el lead consultó por una puntual, o null",
-  "cumpleanos": "fecha de cumpleaños o null si no proporcionó"
+  "codigoPropiedad": "código de la propiedad del catálogo si el lead consultó por una puntual, o null"
 }`,
   arrendatario: `{
   "nombre": "nombre completo si fue mencionado",
@@ -86,8 +85,7 @@ const SCHEMAS = {
   "estacionamiento": "sí o no",
   "ascensor": "sí, no, o null si no aplica/no se preguntó",
   "presupuesto": "presupuesto mensual",
-  "codigoPropiedad": "código de la propiedad del catálogo si el lead consultó por una puntual, o null",
-  "cumpleanos": "fecha de cumpleaños o null si no proporcionó"
+  "codigoPropiedad": "código de la propiedad del catálogo si el lead consultó por una puntual, o null"
 }`,
   hablar_asesor: `{
   "nombre": "nombre completo"

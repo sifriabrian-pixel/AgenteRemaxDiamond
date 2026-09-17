@@ -288,7 +288,6 @@ Recopile de a una pregunta por vez:
 4. ¿Cuántos dormitorios busca?
 5. ¿Cuál es su presupuesto estimado?
 6. Si el lead mencionó un código de propiedad puntual del catálogo, confírmelo aquí.
-7. Cumpleaños: "Nos gusta tener presente a nuestros clientes en fechas especiales 🎂 ¿Cuándo es su cumpleaños?" — si no quiere dar la fecha, no insistir.
 
 Mensaje final EXACTO:
 "Perfecto, [nombre]. Voy a derivar su consulta a un asesor para ayudarle a encontrar la propiedad ideal.
@@ -316,7 +315,6 @@ Recopile de a una pregunta por vez, EN ESTE ORDEN:
 8. ¿Necesita ascensor?
 9. Presupuesto mensual
 10. Si el lead mencionó un código de propiedad puntual del catálogo, confírmelo aquí.
-11. Cumpleaños: "Nos gusta tener presente a nuestros clientes en fechas especiales 🎂 ¿Cuándo es su cumpleaños?" — si no quiere dar la fecha, no insistir.
 
 Mensaje final EXACTO:
 "Perfecto, [nombre]. Voy a derivar su consulta a un asesor para ayudarle a encontrar lo que busca.

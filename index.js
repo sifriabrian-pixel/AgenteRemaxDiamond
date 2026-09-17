@@ -806,7 +806,7 @@ function renderPrivacyPage() {
         <p>RE/MAX Diamond, con domicilio en Av. Flavio Reyes entre Av. 24 y Calle 23, CC Manta Shopping Maincentro, Local 26, Manta, Manabí, Ecuador, es responsable del tratamiento de los datos personales que usted nos proporciona a través de nuestro asistente virtual de WhatsApp ("Diamantito") y demás canales de contacto.</p>
 
         <h2>2. Datos que recolectamos</h2>
-        <p>Según el motivo de su contacto, podemos solicitar: nombre completo, número de teléfono, ciudad o sector, tipo y características de la propiedad de interés (venta, arriendo, compra o renta), presupuesto, disponibilidad de contacto, fecha de cumpleaños (opcional) y, en caso de postulación como asesor, información sobre su experiencia y situación laboral.</p>
+        <p>Según el motivo de su contacto, podemos solicitar: nombre completo, número de teléfono, ciudad o sector, tipo y características de la propiedad de interés (venta, arriendo, compra o renta), presupuesto, disponibilidad de contacto y, en caso de postulación como asesor, información sobre su experiencia y situación laboral.</p>
 
         <h2>3. Finalidad</h2>
         <p>Utilizamos estos datos exclusivamente para: contactarlo con un asesor inmobiliario, dar seguimiento a su consulta, evaluar postulaciones para unirse a nuestro equipo de asesores, y mejorar nuestro servicio de atención.</p>
@@ -1019,13 +1019,29 @@ function iconoEstadoEnvio(estadoEnvio) {
 }
 
 function renderBurbujas(historial) {
+  let fechaAnterior = null;
   return (historial || []).map((m) => {
     const esUsuario = m.role === 'user';
-    const hora = m.ts
-      ? new Date(m.ts).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
+    const fechaMsg = m.ts ? new Date(m.ts) : null;
+    const hora = fechaMsg
+      ? fechaMsg.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
       : '';
     const icono = !esUsuario ? iconoEstadoEnvio(m.estadoEnvio) : '';
+
+    // Separador de fecha estilo WhatsApp cada vez que cambia el día — así se
+    // puede saber de un vistazo si una conversación viene de hace rato.
+    let separadorFecha = '';
+    if (fechaMsg) {
+      const claveFecha = fechaMsg.toLocaleDateString('es-EC', { timeZone: 'America/Guayaquil' });
+      if (claveFecha !== fechaAnterior) {
+        const etiqueta = fechaMsg.toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Guayaquil' });
+        separadorFecha = `<div style="text-align:center;margin:10px 0 4px;"><span style="background:#eee;color:#666;font-size:10px;padding:2px 10px;border-radius:999px;">${etiqueta}</span></div>`;
+        fechaAnterior = claveFecha;
+      }
+    }
+
     return `
+      ${separadorFecha}
       <div style="display:flex;justify-content:${esUsuario ? 'flex-start' : 'flex-end'};margin:6px 0;">
         <div style="max-width:85%;padding:8px 11px;border-radius:12px;font-size:12px;background:${esUsuario ? '#f0f0f0' : MARCA.navy};color:${esUsuario ? '#222' : 'white'};">
           ${m.content.replace(/\n/g, '<br>')}
