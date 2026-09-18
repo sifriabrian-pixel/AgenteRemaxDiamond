@@ -2,6 +2,7 @@ require('dotenv').config();
 const http = require('http');
 
 const { chat, extraerDatos } = require('./src/claude');
+const agendamiento = require('./src/agendamiento');
 const memory = require('./src/memory');
 const scheduler = require('./src/scheduler');
 const guardias = require('./src/guardias');
@@ -467,10 +468,14 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
     .filter(m => m.role === 'user' || m.role === 'assistant')
     .map(({ role, content }) => ({ role, content }));
 
+  // Contexto dinámico (fecha/hora real + opciones de agendamiento) — se
+  // calcula en código, nunca se le pide a Claude que infiera el día/hora.
+  const contextoDinamico = `CONTEXTO DE FECHA Y HORA (para las REGLAS DE AGENDAMIENTO DINÁMICO del prompt): ${agendamiento.calcularOpcionesHorario(estado.prioridad === 'urgente')}`;
+
   // Llamar a Claude
   let respuesta;
   try {
-    respuesta = await chat(historial);
+    respuesta = await chat(historial, contextoDinamico);
   } catch (e) {
     console.error('[claude] Error:', e.message);
     await whatsapp.sendMessage(numeroLimpio, 'Hubo un inconveniente técnico. Por favor intente nuevamente en unos minutos.');

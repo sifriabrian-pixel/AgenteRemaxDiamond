@@ -29,8 +29,10 @@ const FERIADOS = new Set([
   '2026-12-25', // Navidad
 ]);
 
-// PENDIENTE: confirmar con RE/MAX Diamond si el horario de atención es el mismo
-// (lun-vie 08:30–17:30) o si Manta maneja otro horario/turnos.
+// Horario de atención confirmado: lunes a viernes, 9:00 a 18:00.
+const APERTURA_MIN = 9 * 60;
+const CIERRE_MIN = 18 * 60;
+
 let guardiaOverride = null;
 
 function getSheets() {
@@ -49,6 +51,15 @@ function formatDate(date) {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const y = date.getFullYear();
   return `${d}/${m}/${y}`;
+}
+
+// yyyy-mm-dd, para comparar contra las claves de FERIADOS (formatDate() da
+// dd/mm/yyyy, que es lo que espera el Sheet de guardias, no FERIADOS).
+function formatFechaISO(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function getTimezoneDate() {
@@ -93,12 +104,12 @@ async function getAsesorDeGuardia() {
   if (dia === 0 || dia === 6) return null;
 
   // 3. Feriado
-  if (FERIADOS.has(fecha)) return null;
+  if (FERIADOS.has(formatFechaISO(ahora))) return null;
 
-  // 4. Fuera de horario (08:30–17:30)
-  if (hora < 510 || hora >= 1050) return null;
+  // 4. Fuera de horario (9:00–18:00)
+  if (hora < APERTURA_MIN || hora >= CIERRE_MIN) return null;
 
-  const turno = hora < 780 ? 'mañana' : 'tarde';
+  const turno = hora < (APERTURA_MIN + CIERRE_MIN) / 2 ? 'mañana' : 'tarde';
 
   return await buscarEnSheet(fecha, turno);
 }
@@ -120,10 +131,12 @@ function estaEnHorario() {
   const ahora = getTimezoneDate();
   const dia = ahora.getDay();
   const hora = ahora.getHours() * 60 + ahora.getMinutes();
-  const fecha = formatDate(ahora);
   if (dia === 0 || dia === 6) return false;
-  if (FERIADOS.has(fecha)) return false;
-  return hora >= 510 && hora < 1050;
+  if (FERIADOS.has(formatFechaISO(ahora))) return false;
+  return hora >= APERTURA_MIN && hora < CIERRE_MIN;
 }
 
-module.exports = { getAsesorDeGuardia, setOverride, clearOverride, estaEnHorario };
+module.exports = {
+  getAsesorDeGuardia, setOverride, clearOverride, estaEnHorario,
+  FERIADOS, getTimezoneDate, formatFechaISO, APERTURA_MIN, CIERRE_MIN,
+};

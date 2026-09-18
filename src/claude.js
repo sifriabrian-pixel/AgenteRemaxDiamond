@@ -19,13 +19,21 @@ function extraerTexto(content) {
   return bloqueTexto ? bloqueTexto.text : '';
 }
 
-async function chat(historial) {
+// contextoDinamico: texto que cambia en cada mensaje (fecha/hora real,
+// opciones de agendamiento) — va en un bloque de system APARTE, sin cache,
+// porque el bloque de arriba sí se cachea y no puede variar entre llamadas.
+async function chat(historial, contextoDinamico) {
+  const system = [
+    { type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } },
+  ];
+  if (contextoDinamico) {
+    system.push({ type: 'text', text: contextoDinamico });
+  }
+
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 1024,
-    system: [
-      { type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } },
-    ],
+    system,
     messages: historial,
   });
 
