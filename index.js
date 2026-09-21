@@ -49,6 +49,7 @@ const TRIGGERS = [
   'HANDOFF_PROPIETARIO',
   'FOLLOWUP_PROPIETARIO',
   'FOLLOWUP_PROPIETARIO_FUERA_COBERTURA',
+  'FUERA_COBERTURA',
   'HANDOFF_ASESOR',
   'FOLLOWUP_ASESOR',
   'HANDOFF_COMPRADOR',
@@ -244,11 +245,15 @@ async function handleTrigger(trigger, numeroLimpio, datos) {
         break;
       }
 
-      case 'FOLLOWUP_PROPIETARIO_FUERA_COBERTURA': {
+      case 'FOLLOWUP_PROPIETARIO_FUERA_COBERTURA':
+      case 'FUERA_COBERTURA': {
+        // Se marca para que el scheduler NO le mande seguimientos (ya se le
+        // dijo que su zona no está cubierta) ni entre al reporte semanal.
         memory.set(numeroLimpio, {
           datos: { ...datos, fueraCobertura: true },
         });
-        console.log('[followup] Propietario fuera de cobertura — registrado para 30 días');
+        stats.logEvent('fuera_cobertura', numeroLimpio);
+        console.log(`[cobertura] ${numeroLimpio} fuera de cobertura — sin seguimientos`);
         break;
       }
 
@@ -556,7 +561,11 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
 
     // Detectar flujo desde el trigger para extraer datos correctamente
     // (ojo: HABLAR_ASESOR va antes que ASESOR porque también contiene "ASESOR")
+    // FUERA_COBERTURA no pertenece a un flujo puntual: se conserva el flujo
+    // que ya tenía el lead (para no relabelar a un comprador como propietario).
     const flujoDelTrigger =
+      trigger === 'FUERA_COBERTURA'
+        ? (['propietario', 'comprador', 'arrendatario'].includes(estadoActual.flujo) ? estadoActual.flujo : null) :
       trigger.includes('PROPIETARIO') ? 'propietario' :
       trigger.includes('HABLAR_ASESOR') ? 'hablar_asesor' :
       trigger.includes('ASESOR') ? 'asesor' :
@@ -655,7 +664,7 @@ function renderStatsPage(fechaFiltro) {
     .map(([flujo, cantidad]) => `<tr><td style="padding:4px 12px;"><a href="${statsDetalleHref('flujo_' + flujo, fechaFiltro)}" style="color:${MARCA.blue};text-decoration:none;">${flujoLabels[flujo] || flujo}</a></td><td style="padding:4px 12px;text-align:right;font-weight:700;">${cantidad}</td></tr>`)
     .join('');
 
-  const CIUDAD_ORDEN = ['Manta', 'Portoviejo', 'Fuera de cobertura', 'Sin especificar'];
+  const CIUDAD_ORDEN = ['Manta', 'Portoviejo', 'Resto de Manabí', 'Fuera de cobertura', 'Sin especificar'];
   const filasCiudad = CIUDAD_ORDEN
     .map((c) => `<tr><td style="padding:4px 12px;">${c}</td><td style="padding:4px 12px;text-align:right;font-weight:700;">${s.desgloseCiudad[c] || 0}</td></tr>`)
     .join('');

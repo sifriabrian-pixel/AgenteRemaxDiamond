@@ -54,8 +54,9 @@ const FAQ = [
   {
     pregunta: '¿En qué zonas atienden?',
     sinonimos: ['zonas', 'sectores', 'cobertura', 'dónde trabajan', 'en qué lugares'],
-    // Cobertura confirmada por Diamond (2026): Manta y Portoviejo, Ecuador
-    respuesta: `Nuestro equipo atiende Manta y Portoviejo, con oficina en cada ciudad. Donde sea que esté su propiedad, tenemos asesores para atenderlo. Si en algún caso la propiedad está fuera de nuestra zona de cobertura, se lo comentamos con claridad. ¿Hay algo específico en lo que pueda ayudarle ahora?`,
+    // Cobertura confirmada por Diamond (2026): toda la provincia de Manabí, con
+    // oficinas en Manta y Portoviejo. Excluidas: Puerto Cayo, Puerto López y fuera de Manabí.
+    respuesta: `Tenemos oficinas en Manta y Portoviejo, y trabajamos en toda la provincia de Manabí. Por el momento no operamos en algunas zonas como Puerto Cayo o Puerto López, ni fuera de Manabí. ¿En qué zona está su propiedad?`,
   },
 
   // HERRAMIENTAS PARA ASESORES

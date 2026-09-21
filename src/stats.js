@@ -122,11 +122,26 @@ function compararPeriodos() {
 // Manta / Portoviejo a partir de "zona" (propietario) o "sector" (comprador/
 // arrendatario) — son datos de texto libre, así que es una clasificación
 // aproximada, no exacta.
+const OTRAS_CIUDADES_MANABI = [
+  'montecristi', 'chone', 'bahia', 'jipijapa', 'jaramijo', 'san vicente', 'sucre',
+  'rocafuerte', 'junin', 'santa ana', 'calceta', 'tosagua', 'pedernales', 'el carmen',
+  'flavio alfaro', 'olmedo', 'pajan', 'portoviejo', 'pichincha', '24 de mayo', 'manabi',
+].filter((c) => c !== 'portoviejo');
+
+function normalizarTexto(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
 function clasificarCiudad(datos) {
-  const zona = (datos?.zona || '').toLowerCase();
-  const sector = (datos?.sector || '').toLowerCase();
-  if (zona.includes('fuera')) return 'Fuera de cobertura';
+  const zona = normalizarTexto(datos?.zona);
+  const sector = normalizarTexto(datos?.sector);
+  if (datos?.fueraCobertura || zona.includes('fuera')) return 'Fuera de cobertura';
   if (zona.includes('portoviejo') || sector.includes('portoviejo')) return 'Portoviejo';
+  if (zona.includes('manta') || sector.includes('manta')) return 'Manta';
+  if (zona.includes('otra ciudad') || OTRAS_CIUDADES_MANABI.some((c) => sector.includes(c) || zona.includes(c))) {
+    return 'Resto de Manabí';
+  }
+  // Un barrio suelto sin ciudad (ej. "Los Esteros") se asume Manta, la oficina principal.
   if (zona || sector) return 'Manta';
   return 'Sin especificar';
 }
@@ -137,7 +152,7 @@ function desgloseGeografico(fechaFiltro) {
   const filtrados = fechaFiltro ? events.filter(e => e.fecha.startsWith(fechaFiltro)) : events;
   const numeros = new Set(filtrados.filter(e => e.tipo === 'lead_atendido').map(e => e.numero));
 
-  const conteo = { Manta: 0, Portoviejo: 0, 'Fuera de cobertura': 0, 'Sin especificar': 0 };
+  const conteo = { Manta: 0, Portoviejo: 0, 'Resto de Manabí': 0, 'Fuera de cobertura': 0, 'Sin especificar': 0 };
   for (const numero of numeros) {
     const estado = todos[numero];
     if (!estado || estado.esGuardia || numero === reclutamientoNumero) continue;

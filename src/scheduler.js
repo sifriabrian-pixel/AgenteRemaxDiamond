@@ -60,6 +60,7 @@ function init() {
       if (!estado.ultimoMensaje) continue;
       if (estado.esGuardia || numero === reclutamientoNumero) continue; // hilos internos, no leads
       if (estado.datos?.handoffListo) continue; // ya calificó, no hace falta insistir
+      if (estado.datos?.fueraCobertura) continue; // ya se le dijo que su zona no está cubierta
 
       const diffMin = (ahora - new Date(estado.ultimoMensaje)) / 1000 / 60;
 
@@ -152,6 +153,7 @@ async function enviarReporteSemanal() {
   const sinContestar = Object.entries(todos).filter(([numero, estado]) => {
     if (estado.esGuardia || numero === reclutamientoNumero) return false;
     if (!estado.historial || estado.historial.length === 0) return false;
+    if (estado.datos?.fueraCobertura) return false;
     return !estado.datos?.handoffListo;
   });
 

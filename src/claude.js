@@ -54,7 +54,7 @@ const SCHEMAS = {
   "precio": "precio estimado o null si necesita tasación",
   "otraInmobiliaria": "sí o no",
   "disponibilidad": "preferencia horaria (mañana/tarde) para ser contactado",
-  "zona": "Manta / Portoviejo / fuera de cobertura",
+  "zona": "Manta / Portoviejo / otra ciudad de Manabí / fuera de cobertura (Puerto Cayo, Puerto López o fuera de Manabí)",
   "antiguedad": "nueva / 1-5 años / 6-10 años / +10 años / no sabe",
   "prioridad": "Alta / Media / Baja según disposición",
   "observacion": "contexto relevante para el asesor, máximo 1 oración"
@@ -78,7 +78,7 @@ const SCHEMAS = {
   comprador: `{
   "nombre": "nombre completo si fue mencionado",
   "tipo": "tipo de propiedad",
-  "sector": "sector o barrio en Manta o Portoviejo",
+  "sector": "ciudad o sector (Manabí)",
   "dormitorios": "número de dormitorios",
   "presupuesto": "presupuesto estimado",
   "codigoPropiedad": "código de la propiedad del catálogo si el lead consultó por una puntual, o null"
@@ -87,7 +87,7 @@ const SCHEMAS = {
   "nombre": "nombre completo si fue mencionado",
   "tiempoAlquiler": "por cuánto tiempo desea alquilar",
   "tipo": "tipo de propiedad",
-  "sector": "sector o barrio en Manta o Portoviejo",
+  "sector": "ciudad o sector (Manabí)",
   "dormitorios": "número de dormitorios",
   "mascotas": "sí o no",
   "estacionamiento": "sí o no",
