@@ -98,6 +98,12 @@ const SCHEMAS = {
   hablar_asesor: `{
   "nombre": "nombre completo"
 }`,
+  fuera_cobertura: `{
+  "nombre": "nombre completo, o null si no lo dio",
+  "tipo": "tipo de propiedad que busca o quiere vender (casa/departamento/terreno/local/otro), o null",
+  "sector": "ciudad o zona que mencionó (la que quedó fuera de cobertura), o null",
+  "operacion": "venta / arriendo / compra / alquiler según lo que quiere hacer, o null"
+}`,
   pautada: `{
   "nombre": "nombre completo, o null si no lo dio",
   "interes": "vivir / inversión / uso propio, según lo que haya respondido, o null si no se preguntó todavía",

@@ -562,10 +562,10 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
     // Detectar flujo desde el trigger para extraer datos correctamente
     // (ojo: HABLAR_ASESOR va antes que ASESOR porque también contiene "ASESOR")
     // FUERA_COBERTURA no pertenece a un flujo puntual: se conserva el flujo
-    // que ya tenía el lead (para no relabelar a un comprador como propietario).
+    // que ya tenía el lead (para no relabelar a un comprador como propietario)
+    // y se extraen sus datos (nombre, zona, etc.) aparte, con un esquema propio.
     const flujoDelTrigger =
-      trigger === 'FUERA_COBERTURA'
-        ? (['propietario', 'comprador', 'arrendatario'].includes(estadoActual.flujo) ? estadoActual.flujo : null) :
+      trigger === 'FUERA_COBERTURA' ? null :
       trigger.includes('PROPIETARIO') ? 'propietario' :
       trigger.includes('HABLAR_ASESOR') ? 'hablar_asesor' :
       trigger.includes('ASESOR') ? 'asesor' :
@@ -579,6 +579,13 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
       const extraidos = await extraerDatos(historialActual, flujoDelTrigger);
       datosExtraidos = { ...datosExtraidos, ...extraidos };
       memory.set(numeroLimpio, { flujo: flujoDelTrigger, datos: datosExtraidos });
+    } else if (trigger === 'FUERA_COBERTURA') {
+      const historialActual = estadoActual.historial.filter(m => m.role === 'user' || m.role === 'assistant');
+      const extraidos = await extraerDatos(historialActual, 'fuera_cobertura');
+      // Solo se completan campos que vinieron con valor: no pisar con null lo que ya se sabía.
+      for (const [clave, valor] of Object.entries(extraidos)) {
+        if (valor !== null && valor !== undefined && valor !== '') datosExtraidos = { ...datosExtraidos, [clave]: valor };
+      }
     }
 
     await handleTrigger(trigger, numeroLimpio, datosExtraidos);
@@ -591,6 +598,7 @@ const CATEGORIA_LABELS = {
   derivados: 'Leads derivados',
   fuera_horario: 'Fuera de horario',
   reactivados: 'Leads reactivados',
+  fuera_cobertura: 'Fuera de cobertura',
   flujo_propietario: 'Propietarios',
   flujo_asesor: 'Prospectos asesor',
   flujo_comprador: 'Compradores',
@@ -666,7 +674,7 @@ function renderStatsPage(fechaFiltro) {
 
   const CIUDAD_ORDEN = ['Manta', 'Portoviejo', 'Resto de Manabí', 'Fuera de cobertura', 'Sin especificar'];
   const filasCiudad = CIUDAD_ORDEN
-    .map((c) => `<tr><td style="padding:4px 12px;">${c}</td><td style="padding:4px 12px;text-align:right;font-weight:700;">${s.desgloseCiudad[c] || 0}</td></tr>`)
+    .map((c) => `<tr><td style="padding:4px 12px;">${c === 'Fuera de cobertura' ? `<a href="${statsDetalleHref('fuera_cobertura', fechaFiltro)}" style="color:${MARCA.blue};text-decoration:none;">${c}</a>` : c}</td><td style="padding:4px 12px;text-align:right;font-weight:700;">${s.desgloseCiudad[c] || 0}</td></tr>`)
     .join('');
 
   const filasOperacion = [
@@ -759,7 +767,9 @@ function renderDetalleCategoria(categoria, fechaFiltro) {
     const nombre = estado.datos?.nombre || e.numero;
     const fecha = new Date(e.fecha).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' });
     const asesor = estado.datos?.asesorAsignado?.nombre;
-    const detalle = categoria === 'derivados'
+    const detalle = categoria === 'fuera_cobertura'
+      ? `Zona: ${estado.datos?.sector || '-'}`
+      : categoria === 'derivados'
       ? (asesor ? `👤 ${asesor}` : (HANDOFF_LABELS[e.tipo] || e.tipo))
       : (HANDOFF_LABELS[e.tipo] || motivoConsulta(estado));
     return `
@@ -934,7 +944,7 @@ function generarCSVLeads() {
       estado.datos?.sector || '',
       estado.datos?.operacion || '',
       estado.datos?.presupuesto || estado.datos?.precio || '',
-      columnaLead(estado) === 'nuevos' ? 'Nuevo' : 'Calificado',
+      estado.datos?.fueraCobertura ? 'Fuera de cobertura' : (columnaLead(estado) === 'nuevos' ? 'Nuevo' : 'Calificado'),
       estado.datos?.asesorAsignado?.nombre || '',
       estado.prioridad || '',
       estado.origen?.titulo || estado.origen?.url || '',
@@ -1016,6 +1026,7 @@ function renderTarjeta(numero, estado, numeroSeleccionado, miColumna) {
         ${asignado && asignado.nombre !== 'Backup oficina' ? `<div style="font-size:11px;color:${MARCA.blue};margin-top:4px;">👤 ${asignado.nombre}</div>` : ''}
         ${sinResp ? `<span style="display:inline-block;margin-top:6px;background:#f1f1f1;color:#666;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;">Sin respuesta</span>` : ''}
         ${prioridadBadge(estado)}
+        ${estado.datos?.fueraCobertura ? `<span style="display:inline-block;margin-top:6px;margin-right:4px;background:#f1f1f1;color:#555;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">🚫 Fuera de cobertura${estado.datos?.sector ? ` · ${estado.datos.sector}` : ''}</span>` : ''}
         ${notaTexto ? `<div style="font-size:11px;color:#555;margin-top:4px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📝 ${notaTexto}</div>` : ''}
       </div>
     </a>`;

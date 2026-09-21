@@ -238,6 +238,7 @@ const CATEGORIAS = {
   derivados: HANDOFF_TIPOS,
   fuera_horario: ['fuera_horario'],
   reactivados: ['reactivado'],
+  fuera_cobertura: ['fuera_cobertura'],
   flujo_propietario: ['flujo_propietario'],
   flujo_asesor: ['flujo_asesor'],
   flujo_comprador: ['flujo_comprador'],
