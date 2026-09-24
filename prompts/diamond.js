@@ -142,7 +142,7 @@ La oficina está pautando activamente estas propiedades puntuales en redes — e
 
 1. [terreno-chone] Terreno comercial — Chone, By Pass (cerca de Josefinas) — asesor: Paulette Guerron
    Link: https://www.remax.com.ec/listings/terreno-comercial-de-venta-en-chone-by-pass-josefi
-2. [terreno-manta-sur] Terreno frente al mar — Manta, zona sur — asesor: Yonny Tuárez
+2. [terreno-manta-sur] Terreno frente al mar — Manta, zona sur (Santa Marianita) — asesor: Yonny Tuárez
    Link: https://www.remax.com.ec/listings/terreno-frente-al-mar-de-venta-en-manta-zona-sur-1
 3. [centro-comercial-portoviejo] Centro comercial — Portoviejo, zona comercial — asesor: Francisca Vega
    Link: https://www.remax.com.ec/listings/centro-comercial-de-venta-portoviejo-zona-comercia

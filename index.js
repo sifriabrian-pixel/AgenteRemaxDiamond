@@ -475,7 +475,14 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
 
   // Contexto dinámico (fecha/hora real + opciones de agendamiento) — se
   // calcula en código, nunca se le pide a Claude que infiera el día/hora.
-  const contextoDinamico = `CONTEXTO DE FECHA Y HORA (para las REGLAS DE AGENDAMIENTO DINÁMICO del prompt): ${agendamiento.calcularOpcionesHorario(estado.prioridad === 'urgente')}`;
+  let contextoDinamico = `CONTEXTO DE FECHA Y HORA (para las REGLAS DE AGENDAMIENTO DINÁMICO del prompt): ${agendamiento.calcularOpcionesHorario(estado.prioridad === 'urgente')}`;
+
+  // El título del anuncio de Meta (si el lead entró haciendo click en uno) se
+  // guarda para mostrarlo en el CRM, pero Claude nunca lo veía — sin esto no
+  // tenía forma de saber "de qué anuncio vino" para matchear PROPIEDADES PAUTADAS.
+  if (estado.origen?.titulo) {
+    contextoDinamico += `\n\nORIGEN DE ESTE LEAD: entró haciendo click en un anuncio de Meta titulado "${estado.origen.titulo}". Si eso coincide con alguna propiedad de PROPIEDADES PAUTADAS, trátela como tal aunque el lead no la describa con las mismas palabras.`;
+  }
 
   // Llamar a Claude
   let respuesta;
