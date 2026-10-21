@@ -1,50 +1,62 @@
 [
   {
-    "id": "terreno-chone",
-    "tipo": "Terreno comercial",
-    "descripcion": "Terreno comercial en Chone, By Pass (cerca de Josefinas)",
-    "url": "https://www.remax.com.ec/listings/terreno-comercial-de-venta-en-chone-by-pass-josefi",
-    "asesorNombre": "Paulette Guerron",
-    "asesorWhatsapp": "593999283821"
-  },
-  {
-    "id": "terreno-manta-sur",
-    "tipo": "Terreno",
-    "descripcion": "Terreno frente al mar en Manta, zona sur (Santa Marianita)",
-    "url": "https://www.remax.com.ec/listings/terreno-frente-al-mar-de-venta-en-manta-zona-sur-1",
-    "asesorNombre": "Yonny Tuárez",
-    "asesorWhatsapp": "593987239487"
-  },
-  {
-    "id": "centro-comercial-portoviejo",
-    "tipo": "Centro comercial",
-    "descripcion": "Centro comercial en Portoviejo, zona comercial",
-    "url": "https://www.remax.com.ec/listings/centro-comercial-de-venta-portoviejo-zona-comercia",
-    "asesorNombre": "Francisca Vega",
-    "asesorWhatsapp": "593991334072"
-  },
-  {
-    "id": "casa-montecristi",
-    "tipo": "Casa",
-    "descripcion": "Casa en Montecristi, Manabí",
-    "url": "https://www.remax.com.ec/listings/casa-de-venta-en-montecristi-manabi-ecuador",
-    "asesorNombre": "Gabriela Zambrano",
-    "asesorWhatsapp": "593989562265"
-  },
-  {
-    "id": "terreno-los-esteros",
-    "tipo": "Terreno",
-    "descripcion": "Terreno en Manta, zona Los Esteros",
-    "url": "https://www.remax.com.ec/listings/terreno-de-venta-en-manta-zona-los-esteros-1",
-    "asesorNombre": "Gabriela Zambrano",
-    "asesorWhatsapp": "593989562265"
-  },
-  {
-    "id": "departamento-manta-sur",
+    "id": "depto-barbasquillo",
     "tipo": "Departamento",
-    "descripcion": "Departamento en Manta, zona sur",
-    "url": "https://www.remax.com.ec/listings/departamento-de-venta-en-manta-zona-sur-11",
-    "asesorNombre": "Gabriela Zambrano",
-    "asesorWhatsapp": "593989562265"
+    "operacion": "Venta",
+    "descripcion": "Departamentos con vista al mar en Barbasquillo, Manta",
+    "url": "https://www.remax.com.ec/listings/departamentos-con-vista-al-mar-barbasquillo-manta",
+    "codigoInterno": "1085-100",
+    "asesorNombre": "Beatriz Blacio",
+    "asesorWhatsapp": "593998588246"
+  },
+  {
+    "id": "depto-alquiler-mall-pacifico",
+    "tipo": "Departamento",
+    "operacion": "Alquiler",
+    "descripcion": "Departamento en alquiler en Manta, zona Mall del Pacífico",
+    "url": "https://www.remax.com.ec/listings/departamento-de-alquiler-en-manta-zona-moll-del-pa",
+    "codigoInterno": "1045-84",
+    "asesorNombre": "Johnny Tuárez",
+    "asesorWhatsapp": "593993327047"
+  },
+  {
+    "id": "terreno-manta-sur-15",
+    "tipo": "Terreno",
+    "operacion": "Venta",
+    "descripcion": "Terreno en Manta, zona sur",
+    "url": "https://www.remax.com.ec/listings/terreno-de-venta-en-manta-zona-sur-15",
+    "codigoInterno": "1085-90",
+    "asesorNombre": "Beatriz Blacio",
+    "asesorWhatsapp": "593998588246"
+  },
+  {
+    "id": "terreno-portoviejo",
+    "tipo": "Terreno",
+    "operacion": "Venta",
+    "descripcion": "Terreno en Portoviejo, Manabí",
+    "url": "https://www.remax.com.ec/listings/terreno-de-venta-en-portoviejo-manabi",
+    "codigoInterno": "1045-94",
+    "asesorNombre": "Johnny Tuárez",
+    "asesorWhatsapp": "593993327047"
+  },
+  {
+    "id": "terreno-playa-alta",
+    "tipo": "Terreno",
+    "operacion": "Venta",
+    "descripcion": "Terreno en Playa Alta, Manta",
+    "url": "https://www.remax.com.ec/listings/terreno-de-venta-en-playa-alta-manta-manabi",
+    "codigoInterno": "1045-90",
+    "asesorNombre": "Johnny Tuárez",
+    "asesorWhatsapp": "593993327047"
+  },
+  {
+    "id": "casa-manta-sur",
+    "tipo": "Casa",
+    "operacion": "Venta",
+    "descripcion": "Casa en Manta, zona residencial en el sur",
+    "url": "https://www.remax.com.ec/listings/casa-de-venta-en-manta-zona-residencial-en-el-sur",
+    "codigoInterno": "1045-66",
+    "asesorNombre": "Johnny Tuárez",
+    "asesorWhatsapp": "593993327047"
   }
 ]
