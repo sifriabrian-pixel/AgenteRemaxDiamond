@@ -481,7 +481,7 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
   // guarda para mostrarlo en el CRM, pero Claude nunca lo veía — sin esto no
   // tenía forma de saber "de qué anuncio vino" para matchear PROPIEDADES PAUTADAS.
   if (estado.origen?.titulo) {
-    contextoDinamico += `\n\nORIGEN DE ESTE LEAD: entró haciendo click en un anuncio de Meta titulado "${estado.origen.titulo}". Si eso coincide con alguna propiedad de PROPIEDADES PAUTADAS, trátela como tal aunque el lead no la describa con las mismas palabras.`;
+    contextoDinamico += `\n\nORIGEN DE ESTE LEAD: entró haciendo click en un anuncio de Meta titulado "${estado.origen.titulo}". Úselo solo como pista: es pautada únicamente si coinciden tipo, zona y operación (venta) con una propiedad de PROPIEDADES PAUTADAS. Si el título dice ALQUILER, o el tipo no coincide, NO es pautada — atienda lo que el lead pide (un anuncio de alquiler = FLUJO_ARRENDATARIO).`;
   }
 
   // Llamar a Claude
