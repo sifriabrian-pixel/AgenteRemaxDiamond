@@ -1,5 +1,55 @@
 [
   {
+    "id": "terreno-chone",
+    "tipo": "Terreno comercial",
+    "operacion": "Venta",
+    "descripcion": "Terreno comercial en Chone, By Pass Josefina Viteri",
+    "anuncio": "terreno comercial en Chone",
+    "url": "https://www.remax.com.ec/listings/terreno-comercial-de-venta-en-chone-by-pass-josefi",
+    "asesorNombre": "Paulette Guerron",
+    "asesorWhatsapp": "593999283821"
+  },
+  {
+    "id": "casa-montecristi",
+    "tipo": "Casa",
+    "operacion": "Venta",
+    "descripcion": "Casa de lujo en Montecristi, Manabí",
+    "anuncio": "casa en Montecristi",
+    "url": "https://www.remax.com.ec/listings/casa-de-venta-en-montecristi-manabi-ecuador",
+    "asesorNombre": "Gabriela Zambrano",
+    "asesorWhatsapp": "593989562265"
+  },
+  {
+    "id": "departamento-manta-sur",
+    "tipo": "Departamento",
+    "operacion": "Venta",
+    "descripcion": "Departamento en Manta, zona sur (vía Barbasquillo)",
+    "anuncio": "departamento en Manta Sur",
+    "url": "https://www.remax.com.ec/listings/departamento-de-venta-en-manta-zona-sur-11",
+    "asesorNombre": "Gabriela Zambrano",
+    "asesorWhatsapp": "593989562265"
+  },
+  {
+    "id": "terreno-santa-marianita",
+    "tipo": "Terreno",
+    "operacion": "Venta",
+    "descripcion": "Terreno frente al mar en Manta, zona sur (Santa Marianita), 12.260 m²",
+    "anuncio": "terreno en Santa Marianita",
+    "url": "https://www.remax.com.ec/listings/terreno-frente-al-mar-de-venta-en-manta-zona-sur-1",
+    "asesorNombre": "Yonny Tuárez",
+    "asesorWhatsapp": "593987239487"
+  },
+  {
+    "id": "terreno-los-esteros",
+    "tipo": "Terreno",
+    "operacion": "Venta",
+    "descripcion": "Terreno esquinero de 222 m² en Manta, zona Los Esteros",
+    "anuncio": "terreno en Los Esteros",
+    "url": "https://www.remax.com.ec/listings/terreno-de-venta-en-manta-zona-los-esteros-1",
+    "asesorNombre": "Gabriela Zambrano",
+    "asesorWhatsapp": "593989562265"
+  },
+  {
     "id": "depto-barbasquillo",
     "tipo": "Departamento",
     "operacion": "Venta",
@@ -7,7 +57,8 @@
     "url": "https://www.remax.com.ec/listings/departamentos-con-vista-al-mar-barbasquillo-manta",
     "codigoInterno": "1085-100",
     "asesorNombre": "Beatriz Blacio",
-    "asesorWhatsapp": "593998588246"
+    "asesorWhatsapp": "593998588246",
+    "anuncio": "departamentos con vista al mar en Barbasquillo (Proyecto Avanti)"
   },
   {
     "id": "depto-alquiler-mall-pacifico",
@@ -17,7 +68,8 @@
     "url": "https://www.remax.com.ec/listings/departamento-de-alquiler-en-manta-zona-moll-del-pa",
     "codigoInterno": "1045-84",
     "asesorNombre": "Johnny Tuárez",
-    "asesorWhatsapp": "593993327047"
+    "asesorWhatsapp": "593993327047",
+    "anuncio": "departamento en alquiler en Malecón (frente al mar, cerca del Mall del Pacífico)"
   },
   {
     "id": "terreno-manta-sur-15",
@@ -27,7 +79,8 @@
     "url": "https://www.remax.com.ec/listings/terreno-de-venta-en-manta-zona-sur-15",
     "codigoInterno": "1085-90",
     "asesorNombre": "Beatriz Blacio",
-    "asesorWhatsapp": "593998588246"
+    "asesorWhatsapp": "593998588246",
+    "anuncio": "terreno comercial en Av. Universitaria / Ciudadela Universitaria, zona sur de Manta"
   },
   {
     "id": "terreno-portoviejo",
@@ -37,7 +90,8 @@
     "url": "https://www.remax.com.ec/listings/terreno-de-venta-en-portoviejo-manabi",
     "codigoInterno": "1045-94",
     "asesorNombre": "Johnny Tuárez",
-    "asesorWhatsapp": "593993327047"
+    "asesorWhatsapp": "593993327047",
+    "anuncio": "terreno en la vía Portoviejo – Crucita (Rocafuerte)"
   },
   {
     "id": "terreno-playa-alta",
@@ -47,7 +101,8 @@
     "url": "https://www.remax.com.ec/listings/terreno-de-venta-en-playa-alta-manta-manabi",
     "codigoInterno": "1045-90",
     "asesorNombre": "Johnny Tuárez",
-    "asesorWhatsapp": "593993327047"
+    "asesorWhatsapp": "593993327047",
+    "anuncio": "terreno en San Mateo / Playa Alta, vía San Mateo, con vista al mar"
   },
   {
     "id": "casa-manta-sur",
@@ -57,6 +112,7 @@
     "url": "https://www.remax.com.ec/listings/casa-de-venta-en-manta-zona-residencial-en-el-sur",
     "codigoInterno": "1045-66",
     "asesorNombre": "Johnny Tuárez",
-    "asesorWhatsapp": "593993327047"
+    "asesorWhatsapp": "593993327047",
+    "anuncio": "casa en Av. Universidad, zona residencial de Manta"
   }
 ]
