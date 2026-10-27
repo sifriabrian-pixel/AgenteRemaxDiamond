@@ -418,7 +418,18 @@ function handleOverrideCommand(texto, numeroLimpio) {
   return true;
 }
 
-async function procesarMensaje(numeroLimpio, texto, referral) {
+// Nombre del perfil de WhatsApp: se usa solo si parece un nombre de persona
+// (sin números, emojis, ni nombres de negocio). Si no, Diamantito sigue sin nombre.
+const NO_ES_PERSONA = /inmobiliari|bienes ra|remax|re\/max|propiedades|ventas|store|shop|tienda|negocio|empresa|s\.a\.|ltda|cia\.|consultor/i;
+function nombreUsable(perfil) {
+  const n = String(perfil || '').replace(/\s+/g, ' ').trim();
+  if (n.length < 2 || n.length > 40) return null;
+  if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .-]+$/.test(n)) return null;
+  if (NO_ES_PERSONA.test(n)) return null;
+  return n.split(' ').map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
+}
+
+async function procesarMensaje(numeroLimpio, texto, referral, perfil) {
   console.log(`[msg] ${numeroLimpio}: ${texto}`);
 
   // Override de guardia
@@ -436,6 +447,11 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
   }
 
   const estado = memory.get(numeroLimpio);
+
+  // Nombre del perfil de WhatsApp (Meta lo manda con cada mensaje): se guarda
+  // para no tener que preguntárselo al lead.
+  const nombrePerfil = nombreUsable(perfil);
+  if (nombrePerfil && estado.nombrePerfil !== nombrePerfil) memory.set(numeroLimpio, { nombrePerfil });
 
   // Si es el primer mensaje de este número, registrar lead atendido
   if (estado.historial.length === 0) {
@@ -476,6 +492,11 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
   // Contexto dinámico (fecha/hora real + opciones de agendamiento) — se
   // calcula en código, nunca se le pide a Claude que infiera el día/hora.
   let contextoDinamico = `CONTEXTO DE FECHA Y HORA (para las REGLAS DE AGENDAMIENTO DINÁMICO del prompt): ${agendamiento.calcularOpcionesHorario(estado.prioridad === 'urgente')}`;
+
+  const nombreConocido = memory.get(numeroLimpio).nombrePerfil;
+  contextoDinamico += nombreConocido
+    ? `\n\nNOMBRE DEL LEAD (de su perfil de WhatsApp): ${nombreConocido}. No se lo pregunte; úselo según la sección NOMBRE DEL LEAD.`
+    : '\n\nNOMBRE DEL LEAD: no lo tenemos. No se lo pregunte; siga sin nombre.';
 
   // El título del anuncio de Meta (si el lead entró haciendo click en uno) se
   // guarda para mostrarlo en el CRM, pero Claude nunca lo veía — sin esto no
@@ -531,6 +552,7 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
     const estadoActual = memory.get(numeroLimpio);
     const historialActual = estadoActual.historial.filter(m => m.role === 'user' || m.role === 'assistant');
     const datosPautada = await extraerDatos(historialActual, 'pautada');
+    if (!datosPautada.nombre && estadoActual.nombrePerfil) datosPautada.nombre = `${estadoActual.nombrePerfil} (perfil de WhatsApp)`;
     await handlePautada(idPautada, numeroLimpio, datosPautada);
   }
 
@@ -595,6 +617,8 @@ async function procesarMensaje(numeroLimpio, texto, referral) {
       }
     }
 
+    // Sin nombre dicho en la conversación, al asesor le llega el del perfil de WhatsApp.
+    if (!datosExtraidos.nombre && estadoActual.nombrePerfil) datosExtraidos = { ...datosExtraidos, nombre: `${estadoActual.nombrePerfil} (perfil de WhatsApp)` };
     await handleTrigger(trigger, numeroLimpio, datosExtraidos);
   }
 }
@@ -1451,13 +1475,14 @@ function startServer() {
       for (const entry of payload.entry || []) {
         for (const change of entry.changes || []) {
           const mensajes = change.value?.messages || [];
+          const perfiles = Object.fromEntries((change.value?.contacts || []).map((c) => [c.wa_id, c.profile?.name || null]));
           for (const msg of mensajes) {
             if (msg.type !== 'text') continue;
             const numeroLimpio = msg.from;
             const texto = msg.text?.body || '';
             if (!texto) continue;
 
-            procesarMensaje(numeroLimpio, texto, msg.referral).catch((e) =>
+            procesarMensaje(numeroLimpio, texto, msg.referral, perfiles[msg.from]).catch((e) =>
               console.error('[webhook] Error procesando mensaje:', e.message),
             );
           }
