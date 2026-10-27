@@ -1,11 +1,22 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const systemPromptBase = require('../prompts/diamond');
 const { getFAQPrompt } = require('./faq');
+const { getPautadas } = require('./pautadas');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-// System prompt estático (base + FAQ).
-const systemPrompt = systemPromptBase + getFAQPrompt();
+// Lista de PROPIEDADES PAUTADAS: sale de data/propiedades_pautadas.json, así
+// el prompt y la derivación al asesor nunca quedan desfasados.
+function listaPautadas() {
+  return getPautadas().map((p, i) => [
+    `${i + 1}. [${p.id}] ${p.tipo} en ${String(p.operacion || 'Venta').toUpperCase()} — ${p.descripcion} — asesor: ${p.asesorNombre}`,
+    `   Anuncio: "${p.anuncio || p.descripcion}"`,
+    `   Link: ${p.url}`,
+  ].join('\n')).join('\n');
+}
+
+// System prompt estático (base + pautadas + FAQ).
+const systemPrompt = systemPromptBase.replace('{{PAUTADAS}}', listaPautadas()) + getFAQPrompt();
 
 // Diamantito NO tiene ninguna herramienta para consultar el catálogo de
 // propiedades — a propósito. Su trabajo es calificar al lead y derivarlo,
