@@ -5,6 +5,22 @@ const { getPautadas } = require('./pautadas');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// El precio de las pautadas solo se le da al lead si la oficina lo aprobó
+// (PAUTADAS_MOSTRAR_PRECIO=1). Si no, ni siquiera se le pasa a Claude.
+const mostrarPrecio = () => process.env.PAUTADAS_MOSTRAR_PRECIO === '1';
+
+// Datos de la publicación (scripts/actualizar-pautadas.js), en texto.
+function datosFicha(f) {
+  if (!f) return '   Datos: no disponibles — cualquier detalle se lo responde el asesor.';
+  const lineas = [];
+  if (mostrarPrecio() && f.precio) lineas.push(`Precio: ${f.moneda} ${Number(f.precio).toLocaleString('es-EC')}`);
+  if (f.direccion) lineas.push(`Ubicación: ${f.direccion}`);
+  // "pisos de la propiedad" es ambiguo en las publicaciones (pisos del edificio o de la unidad): no se pasa.
+  for (const [k, v] of Object.entries(f.datos || {})) if (!/^pisos/.test(k)) lineas.push(`${k.charAt(0).toUpperCase() + k.slice(1)}: ${v}`);
+  if (f.descripcion) lineas.push(`Descripción: ${f.descripcion}`);
+  return lineas.map((l) => `   ${l}`).join('\n');
+}
+
 // Lista de PROPIEDADES PAUTADAS: sale de data/propiedades_pautadas.json, así
 // el prompt y la derivación al asesor nunca quedan desfasados.
 function listaPautadas() {
@@ -12,11 +28,18 @@ function listaPautadas() {
     `${i + 1}. [${p.id}] ${p.tipo} en ${String(p.operacion || 'Venta').toUpperCase()} — ${p.descripcion} — asesor: ${p.asesorNombre}`,
     `   Anuncio: "${p.anuncio || p.descripcion}"`,
     `   Link: ${p.url}`,
-  ].join('\n')).join('\n');
+    datosFicha(p.ficha),
+  ].join('\n')).join('\n\n');
 }
 
+const reglaPrecio = () => (mostrarPrecio()
+  ? 'Si pregunta el precio, dígaselo con el dato de la lista (ej. "Son USD 1.300 mensuales"). Si pregunta por negociación o descuentos, eso lo conversa con [asesor].'
+  : 'Si pregunta el precio, dígale que figura arriba de todo en la ficha que le compartió, debajo del título, y que cualquier detalle de precio o negociación se lo confirma [asesor]. No escriba ningún monto.');
+
 // System prompt estático (base + pautadas + FAQ).
-const systemPrompt = systemPromptBase.replace('{{PAUTADAS}}', listaPautadas()) + getFAQPrompt();
+const systemPrompt = systemPromptBase
+  .replace('{{PAUTADAS}}', listaPautadas())
+  .replace('{{REGLA_PRECIO}}', reglaPrecio()) + getFAQPrompt();
 
 // Diamantito NO tiene ninguna herramienta para consultar el catálogo de
 // propiedades — a propósito. Su trabajo es calificar al lead y derivarlo,
