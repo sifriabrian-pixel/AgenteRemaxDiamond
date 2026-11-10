@@ -7,7 +7,19 @@
     "anuncio": "terreno comercial en Chone",
     "url": "https://www.remax.com.ec/listings/terreno-comercial-de-venta-en-chone-by-pass-josefi",
     "asesorNombre": "Paulette Guerron",
-    "asesorWhatsapp": "593999283821"
+    "asesorWhatsapp": "593999283821",
+    "ficha": {
+      "titulo": "Terreno comercial en venta en Bypass Chone S/N, Chone, Chone, Manabí",
+      "direccion": "Bypass Chone S/N, Chone, Chone, Manabí",
+      "precio": 405000,
+      "moneda": "USD",
+      "datos": {
+        "superficie terreno": "5.000 m²"
+      },
+      "descripcion": "Terreno en venta en zona estratégica de alto crecimiento – Chone Oportunidad única de inversión en el By Pass Josefina Viteri, una de las zonas con mayor proyección comercial e industrial de la ciudad de Chone. P/G Este terreno cuenta con un área total de 5.067,42 m² y 50 metros de frente a la vía principal, lo que garantiza alta visibilidad y excelente exposición para cualquier tipo de proyecto. Se encuentra totalmente plano, listo para construir, con vías de acceso en excelente estado y disponibilidad de servicios básicos, facilitando el desarrollo inmediato. Ubicado en un entorno estratégico, a pocos metros de la construcción del futuro centro comercial Paseo Shopping y del terminal terrestre, rodeado de comercios consolidados como estaciones de servicio, ferreterías y locales de repuestos automotrices. Ideal para proyectos comerciales, industriales o de inversión, como showroom, bodegas, locales comerciales o desarrollo empresarial, en una zona de alto tráfico vehicular que potencia cualquier negocio.",
+      "mls": "890351141-6",
+      "actualizado": "2026-11-10"
+    }
   },
   {
     "id": "casa-montecristi",
@@ -17,7 +29,31 @@
     "anuncio": "casa en Montecristi",
     "url": "https://www.remax.com.ec/listings/casa-de-venta-en-montecristi-manabi-ecuador",
     "asesorNombre": "Gabriela Zambrano",
-    "asesorWhatsapp": "593989562265"
+    "asesorWhatsapp": "593989562265",
+    "ficha": {
+      "titulo": "Casa en venta 13 ambientes en S/n S/N, Montecristi, Montecristi, Manabí",
+      "direccion": "S/n S/N, Montecristi, Montecristi, Manabí",
+      "precio": 650000,
+      "moneda": "USD",
+      "datos": {
+        "superficie total": "542 m²",
+        "superficie cubierta": "310.86 m²",
+        "superficie semicubierta": "231.14 m²",
+        "superficie terreno": "542 m²",
+        "ambientes": "Dormitorio, Vestidor, Comedor, Jardín, Cocina, Patio, Baño",
+        "baños": "6",
+        "medios baños": "1",
+        "dormitorios": "6",
+        "parqueaderos": "3",
+        "antigüedad": "3 años",
+        "características": "Parrilla, Baulera",
+        "amenities": "Aire Acondicionado, Gimnasio, Seguridad, Ascensor, Piscina, Cancha De Tenis, Cancha De Futbol, Cancha De Basquetbol, Piscina Climatizada, Áreas Verdes, Área De Juegos Infantiles",
+        "servicios": "Electricidad, Gas, Teléfono, Televisión Por Cable, Televisión Satelital, Agua, Internet, Alcantarillado, Alarma"
+      },
+      "descripcion": "Casa de Lujo de Venta en Montecristi – Manabí Viva el privilegio de residir en una de las urbanizaciones más exclusivas del Ecuador, donde la arquitectura moderna, la tecnología inteligente y el confort se integran en un entorno natural de alto nivel. Ubicación: Montecristi, Manabí Terreno: 542 m² Construcción: 310,86 m² G/Z Diseño, Tecnología y Confort en Cada Espacio Esta propiedad ha sido diseñada para quienes buscan exclusividad, seguridad y un estilo de vida sofisticado. Características Premium: * Ascensor de lujo * 5 dormitorios con A/C tipo split * Sistema de A/C central para áreas sociales * Sistema domótico integral * Cámaras de seguridad + alarmas contra robos e incendios * Cortinas dobles (zebra + blackout) automatizadas * Iluminación indirecta interior y exterior * Sistema de riego automático * Piscina + jacuzzi con calentamiento solar * Transformador eléctrico independiente Arquitectura Moderna con Doble Altura Planta Baja – Interior * Impresionante ingreso con doble altura * Sala y comedor con diseño abierto * Elegantes gradas flotantes * Lámpara decorativa de alto nivel * Dormitorio amplio con baño accesible y doble lavamanos * Cocina contemporánea con isla central, inducción y espacios para electrodomésticos empotrados * Cuarto de máquinas + 3 calderones de agua caliente * Porcelanato moderno en toda la propiedad * Cortina automática de doble altura en sala Planta Baja – Exterior * Ingreso principal y lateral con acceso por llave, clave y huella * 2 parqueaderos cubiertos + 1 descubierto * Jardín con sistema de riego automático * Área social con BBQ y espacio para cocina exterior * Piscina + jacuzzi * Baño exterior * Bodega y cuarto multiuso * Cuarto de bombas independiente Planta Alta – Privacidad y Amplitud 4 dormitorios con baño completo y aire acondicionado: Máster Principal: balcón privado, doble lavamanos y walking closet Máster Secundario: walking closet y espacio para 2 camas de 2½ plazas Dormitorio 3: balcón y closet Dormitorio 4: closet Amenidades Exclusivas *Campo de golf profesional * Cancha de fútbol * Básquet * Tenis * Vóley * Juegos infantiles * Área BBQ * Gimnasio * Seguridad 24/7 * Acceso vehicular con TAG Esta propiedad no solo ofrece lujo y confort, sino también alta plusvalía dentro de un entorno seguro, exclusivo y rodeado de naturaleza. **Agende su visita privada y descubra el hogar que elevará su estilo de vida.** Contácteme para más información y detalles personalizados.",
+      "mls": "890351117-40",
+      "actualizado": "2026-11-10"
+    }
   },
   {
     "id": "departamento-manta-sur",
@@ -27,7 +63,31 @@
     "anuncio": "departamento en Manta Sur",
     "url": "https://www.remax.com.ec/listings/departamento-de-venta-en-manta-zona-sur-11",
     "asesorNombre": "Gabriela Zambrano",
-    "asesorWhatsapp": "593989562265"
+    "asesorWhatsapp": "593989562265",
+    "ficha": {
+      "titulo": "Departamento en venta 12 ambientes en Via Barbasquillo S/N, Barbasquillo, Manta, Manabí",
+      "direccion": "Via Barbasquillo S/N, Barbasquillo, Manta, Manabí",
+      "precio": 355000,
+      "moneda": "USD",
+      "datos": {
+        "superficie total": "170.7 m²",
+        "superficie cubierta": "170.7 m²",
+        "ambientes": "Baño, Dormitorio, Piscina, Cocina/comedor",
+        "baños": "3",
+        "medios baños": "1",
+        "dormitorios": "3",
+        "antigüedad": "8 años",
+        "expensas": "USD 375.78",
+        "apto profesional": "Sí",
+        "pisos de la propiedad": "1",
+        "características": "Closet, Desayunador, Terraza, Lavadero, Medio Baño",
+        "amenities": "Aire Acondicionado, Gimnasio, Seguridad, Ascensor, Piscina, Cisterna, Áreas Verdes, Portón Automático",
+        "servicios": "Alarma, Alcantarillado, Internet, Agua, Electricidad, Gas, Teléfono, Televisión Por Cable, Televisión Satelital"
+      },
+      "descripcion": "DEPARTAMENTO EN VENTA – ZONA SUR DE MANTA Descubre la comodidad, amplitud y exclusividad que este espectacular departamento tiene para ofrecerte. Ubicado en la zona sur de Manta, uno de los sectores de constante crecimiento de la ciudad, ideal para vivir o invertir. G/Z Características principales: • Área total: 170,70 m² • Amplios y modernos espacios • Excelente distribución e iluminación natural • Sala y comedor confortables • Cocina funcional con acabados de calidad • Dormitorios amplios y acogedores • Baños modernos • Área social y ambientes diseñados para tu comodidad El edificio cuenta con equipamiento y amenidades que brindan seguridad, confort y exclusividad: • Lobby • Ascensores • Piscina • Gimnasio • Área social • Sistema de seguridad y control de accesos • Generador eléctrico • Cisterna y sistema de presión de agua Ubicado estratégicamente en la zona sur de Manta, cerca de centros comerciales, restaurantes, instituciones financieras y vías principales. Contáctanos para más información o agendar una visita.",
+      "mls": "890351117-52",
+      "actualizado": "2026-11-10"
+    }
   },
   {
     "id": "terreno-santa-marianita",
@@ -37,7 +97,20 @@
     "anuncio": "terreno en Santa Marianita",
     "url": "https://www.remax.com.ec/listings/terreno-frente-al-mar-de-venta-en-manta-zona-sur-1",
     "asesorNombre": "Yonny Tuárez",
-    "asesorWhatsapp": "593987239487"
+    "asesorWhatsapp": "593987239487",
+    "ficha": {
+      "titulo": "Terreno en venta en Calle Desconocida S/N, Manta, Manta, Manabí",
+      "direccion": "Calle Desconocida S/N, Manta, Manta, Manabí",
+      "precio": 2000000,
+      "moneda": "USD",
+      "datos": {
+        "superficie terreno": "12.260 m²",
+        "servicios": "Electricidad, Agua, Alcantarillado, Internet, Televisión Satelital, Televisión Por Cable, Teléfono, Gas"
+      },
+      "descripcion": "De oportunidad se vende un excelente terreno de 12.260 M2 con 109 metros de frente al mar con acceso directa al mar en la excelente localidad de Santa Marianita, Manta. Este impresionante terreno ofrece: * Ubicación Privilegiada en la reconocida primera línea de mar de Santa Marianita, frente al malecón en vía principal, cerca a hosterías y restaurantes del sector, Santa Marianita es conocida por sus playas vírgenes y ambiente tranquilo, relajado y acogedor. *Tiene un potencial Ilimitado perfecto para el DESARROLLO e INVERSIONES que buscan capitalizar en el crecimiento turístico de la zona, ideal para la construcción de residencias exclusivas, un hotel boutique o un complejo turístico de lujo. *Cuenta con acceso a todos los servicios básicos *Documentación en Regla, todos los papeles están en orden para una transferencia sin complicaciones. No pierdas la oportunidad de poseer este tesoro frente al mar, que combina ubicación premium con un potencial de inversión excepcional. Contáctanos ahora para más detalles y para agendar una visita personalizada. ¡El futuro de tu inversión comienza aquí en Santa Marianita, Manta!",
+      "mls": "890351001-758",
+      "actualizado": "2026-11-10"
+    }
   },
   {
     "id": "terreno-los-esteros",
@@ -47,7 +120,22 @@
     "anuncio": "terreno en Los Esteros",
     "url": "https://www.remax.com.ec/listings/terreno-de-venta-en-manta-zona-los-esteros-1",
     "asesorNombre": "Gabriela Zambrano",
-    "asesorWhatsapp": "593989562265"
+    "asesorWhatsapp": "593989562265",
+    "ficha": {
+      "titulo": "Terreno en venta en Los Esteros S/N, Los Esteros, Manta, Manabí",
+      "direccion": "Los Esteros S/N, Los Esteros, Manta, Manabí",
+      "precio": 28000,
+      "moneda": "USD",
+      "datos": {
+        "superficie terreno": "222 m²",
+        "apto crédito": "Sí",
+        "ofrece financiamiento": "Sí",
+        "servicios": "Electricidad, Agua, Agua Corriente, Alcantarillado"
+      },
+      "descripcion": "Este terreno cuenta con 222 m² y ubicación esquinera, lo que te brinda mejor iluminación natural, ventilación y doble acceso, ideal para construir la casa de tus sueños o desarrollar un proyecto inmobiliario. Disfruta además de árboles frutales que aportan frescura, valor y un entorno natural único Haz realidad tu proyecto de vida o inversión en una de las zonas con mayor crecimiento de Manta. Ubicado en un sector tranquilo y seguro, perfecto para vivir en familia Zona en constante desarrollo y alta proyección de plusvalía Cuenta con todos los servicios básicos Excelente accesibilidad Documentación en regla – listo para escriturar Gran oportunidad de inversión en Manta Contáctame para más información o agendar una visita. RJ/B",
+      "mls": "890351078-125",
+      "actualizado": "2026-11-10"
+    }
   },
   {
     "id": "depto-barbasquillo",
@@ -58,7 +146,30 @@
     "codigoInterno": "1085-100",
     "asesorNombre": "Beatriz Blacio",
     "asesorWhatsapp": "593998588246",
-    "anuncio": "departamentos con vista al mar en Barbasquillo (Proyecto Avanti)"
+    "anuncio": "departamentos con vista al mar en Barbasquillo (Proyecto Avanti)",
+    "ficha": {
+      "titulo": "Departamento en venta 5 ambientes en Calle Barbasquillo 1 S/N, Manta, Manta, Manabí",
+      "direccion": "Calle Barbasquillo 1 S/N, Manta, Manta, Manabí",
+      "precio": 132500,
+      "moneda": "USD",
+      "datos": {
+        "superficie total": "87 m²",
+        "superficie cubierta": "87 m²",
+        "ambientes": "Dormitorio, Cocina/comedor, Baño, Terraza, Piscina",
+        "baños": "1",
+        "medios baños": "1",
+        "dormitorios": "2",
+        "parqueaderos": "1",
+        "antigüedad": "0 años",
+        "pisos de la propiedad": "6",
+        "características": "Parrilla, Closet, Acceso De Parqueadero, Ascensor, Baulera, Permite Mascotas",
+        "amenities": "Gimnasio, Piscina, Cisterna, Estacionamiento Para Visitas, Ascensor",
+        "servicios": "Agua, Electricidad, Alcantarillado, Desayunador"
+      },
+      "descripcion": "PROYECTO AVANTI: DEPARTAMENTOS DE 1, 2 Y 3 HABITACIONES CON VISTA AL MAR EN EL MEJOR SECTOR RESEIDENCIAL DE MANTA Exclusivo edificio boutique de solo 6 pisos y 22 departamentos ubicado estratégicamente en Lomas de Barbasquillo, la zona de mayor plusvalía, proyección y crecimiento inmobiliario de Manta, a pocos pasos de plazas comerciales, restaurantes de alta cocina y espacios de entretenimiento de la ciudad, con vistas infinitas al Océano Pacífico. B/B AMENIDADES: Cada espacio común ha sido conceptualizado para elevar tu día a día, ofreciendo experiencias de relajación, productividad y entretenimiento sin salir de casa: Rooftop Lounge & BBQ: El escenario perfecto para tus eventos sociales con el mar de fondo. Piscina & Jacuzzi: Relájate bajo el sol costero en un entorno de diseño vanguardista. Fitness Center & Spa: Cuida de tu bienestar físico y mental en un espacio equipado y exclusivo. Coworking Space: Trabaja de forma inteligente y cómoda desde la tranquilidad de tu edificio. Seguridad 24/7: Tranquilidad absoluta con sistemas de control de accesos de última generación. Ascensor de Autos: Innovación y confort para un acceso vehicular impecable a los 2 subsuelos de parqueaderos techados. Disponibilidad y Tipologías Exclusivas: Suites de Lujo (Vista al Mar): Desde 60.95 m² | Inversión desde $102,500 Ideal para solteros, parejas o inversionistas que buscan alta rentabilidad en rentas vacacionales. Departamentos de 2 Dormitorios: Desde 87.15 m² | Inversión desde $132,500 El equilibrio perfecto entre espacio, comodidad y diseño residencial. Departamentos de 3 Dormitorios: Desde 153.22 m² | Inversión desde $254,500 Amplitud absoluta y vistas privilegiadas para disfrutar en familia. Plan de Financiamiento Flexible y a Tu Medida Construye tu patrimonio frente al mar sin descapitalizarte. Reserva hoy: Con solo $2,000 USD congelas el precio de lanzamiento y aseguras tu ubicación preferida. Durante la construcción: Completa el 30% del valor en cuotas mensuales flexibles mientras avanza la obra. Contra entrega: El 70% restante lo cancelas al momento de recibir las llaves, ya sea con fondos propios o a través del crédito hipotecario de la institución bancaria de tu preferencia (BIESS o banca privada) Realizamos los trámites en caso de crédito hipotecario ¡No te quedes fuera! Escríbenos ahora mismo para coordinar una visita a la obra y puedas aprovechar precios de pre venta!",
+      "mls": "890351085-100",
+      "actualizado": "2026-11-10"
+    }
   },
   {
     "id": "depto-alquiler-mall-pacifico",
@@ -69,7 +180,29 @@
     "codigoInterno": "1045-84",
     "asesorNombre": "Johnny Tuárez",
     "asesorWhatsapp": "593993327047",
-    "anuncio": "departamento en alquiler en Malecón (frente al mar, cerca del Mall del Pacífico)"
+    "anuncio": "departamento en alquiler en Malecón (frente al mar, cerca del Mall del Pacífico)",
+    "ficha": {
+      "titulo": "Departamento en alquiler 4 ambientes en Avenida Malecón S/N, Manta, Manta, Manabí",
+      "direccion": "Avenida Malecón S/N, Manta, Manta, Manabí",
+      "precio": 1300,
+      "moneda": "USD",
+      "datos": {
+        "superficie total": "105 m²",
+        "superficie cubierta": "100 m²",
+        "superficie semicubierta": "5 m²",
+        "ambientes": "4",
+        "baños": "2",
+        "medios baños": "1",
+        "dormitorios": "2",
+        "parqueaderos": "1",
+        "antigüedad": "12 años",
+        "expensas": "USD 95",
+        "pisos de la propiedad": "13"
+      },
+      "descripcion": "Se alquila hermoso departamento frente al mar en la ciudad de Manta, ubicado en una de las zonas más privilegiadas y cotizadas de la ciudad, a pocos metros del reconocido Mall del Pacífico. Este departamento ofrece una espectacular vista panorámica al océano y a la ciudad, permitiéndote disfrutar de impresionantes amaneceres y atardeceres desde la comodidad de tu hogar. Su ubicación estratégica te permite estar cerca de restaurantes, cafeterías, zonas comerciales y del malecón, combinando perfectamente comodidad, entretenimiento y calidad de vida. La propiedad cuenta con 2 cómodas habitaciones, espacios bien distribuidos y excelente iluminación natural. El área social es ideal para disfrutar de la vista al mar y crear un ambiente relajante y exclusivo. Además, dispone de garaje amplio, brindando seguridad y comodidad para tu vehículo. Una excelente opción de alquiler para quienes buscan vivir frente al mar, con una vista privilegiada y en una de las mejores zonas de Manta.",
+      "mls": "890351045-84",
+      "actualizado": "2026-11-10"
+    }
   },
   {
     "id": "terreno-manta-sur-15",
@@ -80,7 +213,20 @@
     "codigoInterno": "1085-90",
     "asesorNombre": "Beatriz Blacio",
     "asesorWhatsapp": "593998588246",
-    "anuncio": "terreno comercial en Av. Universitaria / Ciudadela Universitaria, zona sur de Manta"
+    "anuncio": "terreno comercial en Av. Universitaria / Ciudadela Universitaria, zona sur de Manta",
+    "ficha": {
+      "titulo": "Terreno comercial en venta en Av. Universitaria S/N, Manta, Manta, Manabí",
+      "direccion": "Av. Universitaria S/N, Manta, Manta, Manabí",
+      "precio": 240000,
+      "moneda": "USD",
+      "datos": {
+        "superficie terreno": "702.2 m²",
+        "servicios": "Alcantarillado, Electricidad, Agua"
+      },
+      "descripcion": "Excelente terreno en venta en la zona sur de Manta, Ciudadela Universitaria, ubicado a solo una cuadra de la vía Barbasquillo, en un sector estratégico y de alta plusvalía. Cuenta con 702.20 m² y uso de suelo residencial y comercial, ideal para desarrollo proyecto de apartamentos, hotel, o proyecto mixto. Se permite construcción de hasta 4 pisos, lo que brinda la oportunidad de obtener una privilegiada vista al mar. Ubicado cerca de importantes puntos gastronómicos y comerciales como Martinica, Restaurante Las Velas, Plaza La Quadra, etc. en una zona de constante crecimiento y alta demanda. El terreno dispone de todos los servicios básicos. Solicita más información y aprovecha esta oportunidad! BB.",
+      "mls": "890351085-90",
+      "actualizado": "2026-11-10"
+    }
   },
   {
     "id": "terreno-portoviejo",
@@ -102,7 +248,20 @@
     "codigoInterno": "1045-90",
     "asesorNombre": "Johnny Tuárez",
     "asesorWhatsapp": "593993327047",
-    "anuncio": "terreno en San Mateo / Playa Alta, vía San Mateo, con vista al mar"
+    "anuncio": "terreno en San Mateo / Playa Alta, vía San Mateo, con vista al mar",
+    "ficha": {
+      "titulo": "Terreno en venta en Vía San Mateo S/N, Manta, Manta, Manabí",
+      "direccion": "Vía San Mateo S/N, Manta, Manta, Manabí",
+      "precio": 98000,
+      "moneda": "USD",
+      "datos": {
+        "superficie terreno": "375 m²",
+        "expensas": "USD 70"
+      },
+      "descripcion": "Terreno Exclusivo con Vista al Mar – Oportunidad Única Invierte en uno de los sectores más privilegiados y de mayor proyección, con este espectacular terreno de 375 m², ubicado dentro de una urbanización moderna y de alto nivel. Lo que lo hace único: 375 m² ideales para construir una residencia de lujo Vista al mar que te regala atardeceres incomparables todos los días Ubicación estratégica dentro de una zona residencial exclusiva Rodeado de viviendas modernas de alto estándar Acceso por vías pavimentadas y de fácil conectividad Exclusividad y plusvalía: Este terreno no solo ofrece una excelente ubicación, sino también un entorno seguro, tranquilo y con gran proyección de valorización, ideal para quienes buscan invertir o construir una propiedad de alto nivel. Vive la experiencia de despertar con el sonido del mar y disfrutar de una vista privilegiada en un entorno único.",
+      "mls": "890351045-90",
+      "actualizado": "2026-11-10"
+    }
   },
   {
     "id": "casa-manta-sur",
@@ -113,6 +272,28 @@
     "codigoInterno": "1045-66",
     "asesorNombre": "Johnny Tuárez",
     "asesorWhatsapp": "593993327047",
-    "anuncio": "casa en Av. Universidad, zona residencial de Manta"
+    "anuncio": "casa en Av. Universidad, zona residencial de Manta",
+    "ficha": {
+      "titulo": "Casa en venta 4 ambientes en Avenida Universidad 4 0, Manta, Manta, Manabí",
+      "direccion": "Avenida Universidad 4 0, Manta, Manta, Manabí",
+      "precio": 145000,
+      "moneda": "USD",
+      "datos": {
+        "superficie total": "164 m²",
+        "superficie cubierta": "160 m²",
+        "superficie semicubierta": "4 m²",
+        "superficie terreno": "200 m²",
+        "ambientes": "4",
+        "baños": "4",
+        "medios baños": "1",
+        "dormitorios": "3",
+        "parqueaderos": "1",
+        "antigüedad": "8 años",
+        "expensas": "USD 80"
+      },
+      "descripcion": "Se vende hermosa casa ubicada en una prestigiosa zona residencial de Manta, Manabí, conocida por su tranquilidad, seguridad y cercanía a todos los servicios. Este hogar es ideal para quienes buscan confort, modernidad y un entorno agradable para vivir. Esta propiedad combina funcionalidad y estilo, ofreciendo un espacio acogedor para disfrutar con la familia en una de las mejores zonas residenciales de la ciudad.",
+      "mls": "890351045-66",
+      "actualizado": "2026-11-10"
+    }
   }
 ]
