@@ -2,6 +2,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const systemPromptBase = require('../prompts/diamond');
 const { getFAQPrompt } = require('./faq');
 const { getPautadas } = require('./pautadas');
+const { textoFicha } = require('./ficha');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -24,17 +25,21 @@ function datosFicha(f) {
 // Lista de PROPIEDADES PAUTADAS: sale de data/propiedades_pautadas.json, así
 // el prompt y la derivación al asesor nunca quedan desfasados.
 function listaPautadas() {
-  return getPautadas().map((p, i) => [
-    `${i + 1}. [${p.id}] ${p.tipo} en ${String(p.operacion || 'Venta').toUpperCase()} — ${p.descripcion} — asesor: ${p.asesorNombre}`,
-    `   Anuncio: "${p.anuncio || p.descripcion}"`,
-    `   Link: ${p.url}`,
-    datosFicha(p.ficha),
-  ].join('\n')).join('\n\n');
+  return getPautadas().map((p, i) => {
+    const ficha = textoFicha(p, { conPrecio: mostrarPrecio() });
+    return [
+      `${i + 1}. [${p.id}] ${p.tipo} en ${String(p.operacion || 'Venta').toUpperCase()} — ${p.descripcion} — asesor: ${p.asesorNombre}`,
+      `   Anuncio: "${p.anuncio || p.descripcion}"`,
+      `   Link: ${p.url}`,
+      datosFicha(p.ficha),
+      ficha ? `   FICHA PARA ENVIAR (cópiela tal cual, sin cambiar nada):\n<<<\n${ficha}\n>>>` : '   FICHA PARA ENVIAR: no hay — en el PASO 1 mande el link.',
+    ].join('\n');
+  }).join('\n\n');
 }
 
 const reglaPrecio = () => (mostrarPrecio()
-  ? 'Si pregunta el precio, dígaselo con el dato de la lista (ej. "Son USD 1.300 mensuales"). Si pregunta por negociación o descuentos, eso lo conversa con [asesor].'
-  : 'Si pregunta el precio, dígale que figura arriba de todo en la ficha que le compartió, debajo del título, y que cualquier detalle de precio o negociación se lo confirma [asesor]. No escriba ningún monto.');
+  ? 'Si pregunta el precio, recuérdeselo con el dato de la ficha (ej. "Son USD 1.300 mensuales, más USD 95 de alícuota"). Si pregunta por negociación o descuentos, eso lo conversa con [asesor].'
+  : 'Si pregunta el precio, dígale que lo ve en la publicación ([url]) y que cualquier detalle de precio o negociación se lo confirma [asesor]. No escriba ningún monto.');
 
 // System prompt estático (base + pautadas + FAQ).
 const systemPrompt = systemPromptBase
